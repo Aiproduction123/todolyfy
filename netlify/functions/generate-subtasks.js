@@ -24,7 +24,7 @@ exports.handler = async function(event, context) {
         });
         
         const generationConfig = {
-            responseMimeType: "application/json",
+            response_mime_type: "application/json",
         };
 
         const safetySettings = [
