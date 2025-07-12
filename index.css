@@ -1,0 +1,320 @@
+:root {
+    --primary-color: #4a90e2;
+    --background-color: #f4f7f9;
+    --card-background: #ffffff;
+    --text-color: #333333;
+    --light-text-color: #666666;
+    --border-color: #e0e0e0;
+    --danger-color: #e74c3c;
+    --success-color: #2ecc71;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* API Key Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background: var(--card-background);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-content h2 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.modal-content p {
+    margin-bottom: 1.5rem;
+    color: var(--light-text-color);
+}
+
+#api-key-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+#save-api-key-btn {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#save-api-key-btn:hover {
+    background-color: #357abd;
+}
+
+
+/* Main App Styles */
+.container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.title-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.logo {
+    width: 32px;
+    height: 32px;
+    color: var(--primary-color);
+}
+
+header h1 {
+    color: var(--primary-color);
+    margin-bottom: 0;
+}
+
+#task-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+#task-input {
+    flex-grow: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#task-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+#task-form button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#task-form button:disabled,
+#task-input:disabled {
+    background-color: #a0c7f1;
+    cursor: not-allowed;
+}
+#task-input:disabled {
+    background-color: #f0f0f0;
+}
+
+#task-form button:hover:not(:disabled) {
+    background-color: #357abd;
+}
+
+.task-item {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.task-header h2 {
+    font-size: 1.25rem;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.task-header .delete-btn {
+    background: none;
+    border: none;
+    color: var(--light-text-color);
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1;
+    transition: color 0.3s ease;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.task-header .delete-btn:hover {
+    color: var(--danger-color);
+}
+
+.task-body {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.subtask-list {
+    list-style: none;
+}
+
+.subtask-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    gap: 0.5rem;
+}
+
+.subtask-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-grow: 1;
+    min-width: 0; /* Prevents overflow */
+}
+
+.subtask-content label {
+    word-break: break-word;
+}
+
+.subtask-item input[type="checkbox"] {
+    margin-right: 0;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.subtask-item.completed .subtask-content label {
+    text-decoration: line-through;
+    color: var(--light-text-color);
+}
+
+.edit-input {
+    flex-grow: 1;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.edit-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.subtask-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subtask-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.2rem;
+    line-height: 1;
+    color: var(--light-text-color);
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.subtask-actions button:hover {
+    transform: scale(1.2);
+}
+
+.subtask-actions .edit-btn:hover {
+    color: var(--primary-color);
+}
+
+.subtask-actions .delete-btn:hover {
+    color: var(--danger-color);
+}
+
+.loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--primary-color);
+    animation: spin 1s ease infinite;
+    margin: 1rem auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.error-message {
+    color: var(--danger-color);
+    text-align: center;
+    padding: 0.5rem 0;
+}
