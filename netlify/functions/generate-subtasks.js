@@ -1,8 +1,11 @@
-const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 const AI_MODEL_NAME = 'gemini-1.5-flash';
-// Your API key is securely accessed from Netlify's environment variables
-import { GoogleGenerativeAI } from "@google/generative-ai";(process.env.API_KEY);
+// Get your API key from Netlify's environment variables
+const API_KEY = process.env.API_KEY;
+
+// Initialize the GoogleGenerativeAI client
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 exports.handler = async function(event, context) {
     if (event.httpMethod !== 'POST') {
