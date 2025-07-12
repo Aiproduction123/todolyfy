@@ -1,12 +1,6 @@
 {
-  "name": "todolyfy",
-  "version": "1.0.0",
-  "description": "An intelligent to-do app",
-  "main": "index.js",
+  "type": "module",
   "dependencies": {
-    "@google/generative-ai": "^0.15.0"
-  },
-  "scripts": {
-    "start": "node index.js"
+    "@google/generative-ai": "^0.2.1"
   }
 }
