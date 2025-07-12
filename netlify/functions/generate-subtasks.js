@@ -1,10 +1,8 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 const AI_MODEL_NAME = 'gemini-1.5-flash';
-// Get your API key from Netlify's environment variables
 const API_KEY = process.env.API_KEY;
 
-// Initialize the GoogleGenerativeAI client
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 exports.handler = async function(event, context) {
@@ -22,10 +20,6 @@ exports.handler = async function(event, context) {
             model: AI_MODEL_NAME,
             systemInstruction: "You are an expert at breaking down large tasks into smaller, actionable steps.",
         });
-        
-        const generationConfig = {
-            response_mime_type: "application/json",
-        };
 
         const safetySettings = [
             {
@@ -39,13 +33,12 @@ exports.handler = async function(event, context) {
         ];
 
         const chat = model.startChat({
-            generationConfig,
             safetySettings,
             history: [],
         });
 
-        const prompt = `Based on the complexity of the task "${taskText}", break it down into 1 to 3 smaller, actionable subtasks. Simple tasks should have fewer subtasks.`;
-        
+        const prompt = `Based on the complexity of the task "${taskText}", break it down into 1 to 3 smaller, actionable subtasks. Simple tasks should have fewer subtasks. IMPORTANT: Respond with only a valid JSON array of strings, like ["subtask 1", "subtask 2"].`;
+
         const result = await chat.sendMessage(prompt);
         const response = result.response;
         const responseData = JSON.parse(response.text());
