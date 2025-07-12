@@ -1,13 +1,15 @@
-# This is the main build configuration for your site
+# Build configuration
 [build]
-  # This command tells Netlify to first go into your functions folder
-  # and run `npm install` before doing anything else.
   command = "npm install --prefix=netlify/functions"
-  # This is the directory where your main site files are (index.html, etc.)
   publish = "."
 
-# This configures your serverless functions
+# Functions configuration
 [functions]
   directory = "netlify/functions"
-  # This specifies the modern and recommended way to bundle Node.js functions
   node_bundler = "esbuild"
+
+# Redirect rule to make /api/* paths work
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
