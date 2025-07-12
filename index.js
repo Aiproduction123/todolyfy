@@ -115,7 +115,7 @@ async function handleFormSubmit(e) {
   taskForm.querySelector('button').disabled = true;
 
   try {
-    const response = await fetch('/api/generate-subtasks', {
+    const response = await fetch('/.netlify/functions/generate-subtasks', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
