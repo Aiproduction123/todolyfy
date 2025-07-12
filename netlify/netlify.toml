@@ -3,5 +3,5 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/generate-subtasks"
   status = 200
