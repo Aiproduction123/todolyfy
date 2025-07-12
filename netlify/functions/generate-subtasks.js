@@ -1,137 +1,62 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
 const AI_MODEL_NAME = 'gemini-1.5-flash';
+// Your API key is securely accessed from Netlify's environment variables
+const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
 exports.handler = async function(event, context) {
-    console.log('Function called with method:', event.httpMethod);
-    
-    // Add CORS headers
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Content-Type': 'application/json'
-    };
-
-    // Handle preflight requests
-    if (event.httpMethod === 'OPTIONS') {
-        console.log('Handling OPTIONS request');
-        return {
-            statusCode: 200,
-            headers,
-            body: ''
-        };
-    }
-
     if (event.httpMethod !== 'POST') {
-        console.log('Invalid method:', event.httpMethod);
-        return { 
-            statusCode: 405, 
-            headers,
-            body: JSON.stringify({ error: 'Method Not Allowed' })
-        };
+        return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
     try {
-        // Check if API key exists
-        if (!process.env.API_KEY) {
-            console.error('API_KEY not found in environment variables');
-            return {
-                statusCode: 500,
-                headers,
-                body: JSON.stringify({ error: 'API key not configured' })
-            };
-        }
-
-        let taskText;
-        try {
-            const parsedBody = JSON.parse(event.body);
-            taskText = parsedBody.taskText;
-        } catch (parseError) {
-            console.error('Error parsing request body:', parseError);
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: 'Invalid JSON in request body' })
-            };
-        }
-
+        const { taskText } = JSON.parse(event.body);
         if (!taskText) {
-            console.log('No taskText provided');
-            return { 
-                statusCode: 400, 
-                headers,
-                body: JSON.stringify({ error: 'taskText is required' }) 
-            };
+            return { statusCode: 400, body: JSON.stringify({ error: 'taskText is required' }) };
         }
 
-        console.log('Processing task:', taskText);
-
-        const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-        const model = genAI.getGenerativeModel({ model: AI_MODEL_NAME });
+        const model = genAI.getGenerativeModel({
+            model: AI_MODEL_NAME,
+            systemInstruction: "You are an expert at breaking down large tasks into smaller, actionable steps.",
+        });
         
-        const prompt = `Break down this task into 2-4 smaller, actionable subtasks: "${taskText}"
+        const generationConfig = {
+            responseMimeType: "application/json",
+        };
 
-Return only a JSON object with this exact format:
-{
-  "subtasks": ["subtask 1", "subtask 2", "subtask 3"]
-}
+        const safetySettings = [
+            {
+                category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold: HarmBlockThreshold.BLOCK_NONE,
+            },
+            {
+                category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+                threshold: HarmBlockThreshold.BLOCK_NONE,
+            },
+        ];
 
-Make sure each subtask is:
-- Specific and actionable
-- Can be completed in 15-30 minutes
-- Clearly defined
+        const chat = model.startChat({
+            generationConfig,
+            safetySettings,
+            history: [],
+        });
 
-Task: ${taskText}`;
-
-        console.log('Calling AI model...');
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        console.log('AI response:', responseText);
+        const prompt = `Based on the complexity of the task "${taskText}", break it down into 1 to 3 smaller, actionable subtasks. Simple tasks should have fewer subtasks.`;
         
-        // Clean up the response to ensure it's valid JSON
-        let cleanResponse = responseText.trim();
-        if (cleanResponse.startsWith('```json')) {
-            cleanResponse = cleanResponse.replace(/```json\n?/, '').replace(/\n?```$/, '');
-        }
-        
-        let responseData;
-        try {
-            responseData = JSON.parse(cleanResponse);
-            console.log('Parsed response:', responseData);
-        } catch (parseError) {
-            console.log('JSON parse failed, trying fallback parsing');
-            // Fallback: try to extract subtasks from the response
-            const lines = responseText.split('\n').filter(line => line.trim() && !line.includes('```'));
-            const subtasks = lines.map(line => line.replace(/^[-*]\s*/, '').trim()).filter(Boolean);
-            
-            if (subtasks.length === 0) {
-                console.error('No valid subtasks found in AI response');
-                throw new Error('No valid subtasks found in AI response');
-            }
-            
-            responseData = { subtasks: subtasks.slice(0, 4) };
-            console.log('Fallback parsed response:', responseData);
-        }
+        const result = await chat.sendMessage(prompt);
+        const response = result.response;
+        const responseData = JSON.parse(response.text());
 
-        // Validate the response structure
-        if (!responseData.subtasks || !Array.isArray(responseData.subtasks) || responseData.subtasks.length === 0) {
-            console.error('Invalid response structure:', responseData);
-            throw new Error('Invalid response structure from AI');
-        }
-
-        console.log('Returning success response');
         return {
             statusCode: 200,
-            headers,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(responseData),
         };
     } catch (error) {
         console.error('Error in Netlify function:', error);
         return {
             statusCode: 500,
-            headers,
-            body: JSON.stringify({ error: `Failed to generate subtasks: ${error.message}` }),
+            body: JSON.stringify({ error: 'Failed to generate subtasks.' }),
         };
     }
 };

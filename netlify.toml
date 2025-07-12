@@ -2,6 +2,7 @@
   functions = "netlify/functions"
 
 [[redirects]]
-  from = "/api/*"
+  from = "/api/generate-subtasks"
   to = "/.netlify/functions/generate-subtasks"
   status = 200
+  force = true

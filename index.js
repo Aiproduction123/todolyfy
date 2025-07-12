@@ -1,4 +1,3 @@
-
 // --- Configuration ---
 const TASK_STORAGE_KEY = 'todolyfy-tasks';
 
@@ -124,12 +123,29 @@ async function handleFormSubmit(e) {
         body: JSON.stringify({ taskText: originalTaskText }),
     });
 
+    // First, get the raw response text. This avoids parsing errors.
+    const responseText = await response.text();
+
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'The server returned an error.');
+        // If we have an error, try to parse the text as JSON, 
+        // but fall back to the raw text if parsing fails.
+        let errorMessage = 'The server returned an error.';
+        try {
+            const errorData = JSON.parse(responseText);
+            if (errorData && errorData.error) {
+                errorMessage = errorData.error;
+            }
+        } catch (e) {
+            // Parsing failed, use the raw text as the error, if available.
+            if (responseText) {
+                errorMessage = responseText;
+            }
+        }
+        throw new Error(errorMessage);
     }
     
-    const { subtasks: generatedSubtasks } = await response.json();
+    // If the response was successful, parse the text we already fetched.
+    const { subtasks: generatedSubtasks } = JSON.parse(responseText);
     
     const taskIndex = tasks.findIndex(t => t.id === newTask.id);
     if (taskIndex > -1) {
@@ -144,6 +160,7 @@ async function handleFormSubmit(e) {
     }
   } catch (error) {
     console.error('Error generating subtasks:', error);
+    // Now the alert will show a more useful message from the server.
     alert(`An error occurred: ${error.message}`);
     const taskIndex = tasks.findIndex(t => t.id === newTask.id);
     if (taskIndex > -1) {
