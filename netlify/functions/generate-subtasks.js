@@ -43,19 +43,22 @@ exports.handler = async function(event, context) {
         const result = await chat.sendMessage(prompt);
         const response = result.response;
         
-        // --- FIX: Clean the response before parsing ---
-        // Get the raw text from the AI's response
+        // --- ROBUST FIX: Reliably extract JSON from the response ---
         const rawText = response.text();
+        // Use a regular expression to find a JSON array within the raw text.
+        const match = rawText.match(/\[.*\]/s);
         
-        // Find the start and end of the JSON array within the text
-        const startIndex = rawText.indexOf('[');
-        const endIndex = rawText.lastIndexOf(']');
-        
-        // Extract just the JSON part
-        const jsonString = rawText.substring(startIndex, endIndex + 1);
-        
-        // Safely parse the clean JSON string
-        const responseData = JSON.parse(jsonString);
+        let responseData = []; // Default to an empty array
+
+        if (match && match[0]) {
+            try {
+                // If a JSON-like string is found, try to parse it
+                responseData = JSON.parse(match[0]);
+            } catch (jsonError) {
+                console.error("Failed to parse JSON from AI response:", jsonError);
+                // If parsing fails, we'll return the empty array.
+            }
+        }
         // --- End of FIX ---
 
         return {
