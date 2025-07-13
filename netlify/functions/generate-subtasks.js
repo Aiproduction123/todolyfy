@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
-// Use the stable 'gemini-pro' model to ensure availability and multilingual support
+// Use the confirmed gemini-2.5-flash model
 const AI_MODEL_NAME = 'gemini-2.5-flash';
 const API_KEY = process.env.API_KEY;
 
@@ -38,7 +38,7 @@ exports.handler = async function(event, context) {
             history: [],
         });
 
-        // --- NEW: Updated prompt for multilingual support ---
+        // Prompt for multilingual support
         const prompt = `First, detect the language of the following task. Then, based on its complexity, break it down into 1 to 3 smaller, actionable subtasks in that same language.
 Task: "${taskText}"
 IMPORTANT: Respond with only a valid JSON array of strings, like ["subtask 1", "subtask 2"].`;
