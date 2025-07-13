@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
-// Use the stable 'gemini-pro' model to ensure availability
+// Use the stable 'gemini-pro' model to ensure availability and multilingual support
 const AI_MODEL_NAME = 'gemini-2.5-flash';
 const API_KEY = process.env.API_KEY;
 
@@ -38,28 +38,27 @@ exports.handler = async function(event, context) {
             history: [],
         });
 
-        const prompt = `Based on the complexity of the task "${taskText}", break it down into 1 to 3 smaller, actionable subtasks. Simple tasks should have fewer subtasks. IMPORTANT: Respond with only a valid JSON array of strings, like ["subtask 1", "subtask 2"].`;
+        // --- NEW: Updated prompt for multilingual support ---
+        const prompt = `First, detect the language of the following task. Then, based on its complexity, break it down into 1 to 3 smaller, actionable subtasks in that same language.
+Task: "${taskText}"
+IMPORTANT: Respond with only a valid JSON array of strings, like ["subtask 1", "subtask 2"].`;
 
         const result = await chat.sendMessage(prompt);
         const response = result.response;
         
-        // --- ROBUST FIX: Reliably extract JSON from the response ---
+        // Reliably extract JSON from the AI's response
         const rawText = response.text();
-        // Use a regular expression to find a JSON array within the raw text.
         const match = rawText.match(/\[.*\]/s);
         
         let responseData = []; // Default to an empty array
 
         if (match && match[0]) {
             try {
-                // If a JSON-like string is found, try to parse it
                 responseData = JSON.parse(match[0]);
             } catch (jsonError) {
                 console.error("Failed to parse JSON from AI response:", jsonError);
-                // If parsing fails, we'll return the empty array.
             }
         }
-        // --- End of FIX ---
 
         return {
             statusCode: 200,
