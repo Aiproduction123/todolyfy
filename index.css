@@ -35,24 +35,24 @@ body {
 }
 
 .app-header {
-    text-align: center;
-    margin-bottom: 2rem;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    text-align: left;
 }
 
-.app-header .logo {
-    margin-bottom: 0.5rem;
+/* --- LOGO STYLING --- */
+.logo path {
+    stroke: var(--primary-color);
 }
 
-.app-header h1 {
+.header-text h1 {
     margin: 0;
     font-size: 2rem;
 }
 
-.app-header p {
+.header-text p {
     margin: 0;
     color: var(--subtle-text);
     font-size: 1rem;
