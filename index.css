@@ -19,8 +19,8 @@ body {
     margin: 0;
     padding: 2rem 1rem;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column; /* Changed to allow footer at bottom */
+    align-items: center;
     min-height: 100vh;
 }
 
@@ -42,7 +42,6 @@ body {
     text-align: left;
 }
 
-/* --- LOGO STYLING --- */
 .logo path {
     stroke: var(--primary-color);
 }
@@ -181,7 +180,6 @@ body {
     width: 100%;
 }
 
-/* Custom Checkbox */
 .task-checkbox {
     appearance: none;
     -webkit-appearance: none;
@@ -220,4 +218,25 @@ body {
     border: 1px solid #f5c6cb;
     border-radius: 8px;
     text-align: center;
+}
+
+/* --- NEW FOOTER STYLES --- */
+.app-footer {
+    margin-top: 2rem;
+    text-align: center;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.app-footer a {
+    color: var(--subtle-text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.app-footer a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
 }
