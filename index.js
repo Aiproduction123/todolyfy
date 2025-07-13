@@ -12,10 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!taskText) return;
 
         setLoadingState(true);
-        hideError(); // Hide previous errors on a new submission
+        hideError();
 
         try {
-            // Call the Netlify function
             const response = await fetch('/api/generate-subtasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -23,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                // Handle server errors (like 500)
                 throw new Error('The server failed to generate subtasks.');
             }
 
@@ -39,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Function to add a task and its subtasks to the UI
     function addTask(mainTask, subtasks) {
         const li = document.createElement('li');
         li.className = 'task-item';
@@ -49,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         header.innerHTML = `<h3>${escapeHTML(mainTask)}</h3>`;
         li.appendChild(header);
 
-        // This is the key logic: handle empty subtask arrays gracefully
         if (subtasks && subtasks.length > 0) {
             const subtaskList = document.createElement('ul');
             subtaskList.className = 'subtask-list';
@@ -61,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             li.appendChild(subtaskList);
         } else {
-             // Display a helpful message instead of an error
              const noSubtaskMessage = document.createElement('p');
              noSubtaskMessage.textContent = "This task seems simple enough and doesn't need to be broken down.";
              noSubtaskMessage.style.color = '#6c757d';
@@ -72,24 +67,26 @@ document.addEventListener('DOMContentLoaded', () => {
         taskList.prepend(li);
     }
     
-    // Utility to manage the loading state of the button
     function setLoadingState(isLoading) {
-        addTaskBtn.disabled = isLoading;
-        addTaskBtn.textContent = isLoading ? 'Generating...' : 'Add Task';
+        if (addTaskBtn) {
+            addTaskBtn.disabled = isLoading;
+            addTaskBtn.textContent = isLoading ? 'Generating...' : 'Add Task';
+        }
     }
 
-    // Utility to show an error message
     function showError(message) {
-        errorContainer.textContent = message;
-        errorContainer.style.display = 'block';
+        if(errorContainer) {
+            errorContainer.textContent = message;
+            errorContainer.style.display = 'block';
+        }
     }
 
-    // Utility to hide the error message
     function hideError() {
-        errorContainer.style.display = 'none';
+        if(errorContainer) {
+            errorContainer.style.display = 'none';
+        }
     }
 
-    // Utility to prevent XSS attacks by escaping HTML
     function escapeHTML(str) {
         const p = document.createElement('p');
         p.appendChild(document.createTextNode(str));
