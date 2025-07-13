@@ -8,6 +8,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6TGRD6XSS5"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-6TGRD6XSS5');
+    </script>
+    <!-- End Google Analytics -->
 </head>
 <body>
     <main class="container">
@@ -19,7 +29,7 @@
             </svg>
             <div class="header-text">
                 <h1>Todolyfy</h1>
-                <p>Your AI Todo list</p>
+                <p>To do list that breaks down tasks</p>
             </div>
         </header>
 
@@ -36,15 +46,17 @@
 
         <section class="task-list-section">
             <ul id="task-list">
-                </ul>
+                <!-- Tasks will be dynamically added here -->
+            </ul>
         </section>
 
         <div id="error-container" class="error-container" style="display: none;"></div>
-        
-        <footer class="app-footer">
-            <a href="privacy.html">Privacy Policy</a>
-        </footer>
     </main>
+
+    <footer class="app-footer">
+        <p>Contact: <a href="mailto:info@todolyfy.com">info@todolyfy.com</a></p>
+        <a href="/privacy.html" target="_blank">Privacy Policy</a>
+    </footer>
 
     <script src="index.js"></script>
 </body>
