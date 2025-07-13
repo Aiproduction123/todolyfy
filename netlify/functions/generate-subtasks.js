@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
+// Use the stable 'gemini-pro' model to ensure availability
 const AI_MODEL_NAME = 'gemini-2.5-flash';
 const API_KEY = process.env.API_KEY;
 
@@ -41,7 +42,21 @@ exports.handler = async function(event, context) {
 
         const result = await chat.sendMessage(prompt);
         const response = result.response;
-        const responseData = JSON.parse(response.text());
+        
+        // --- FIX: Clean the response before parsing ---
+        // Get the raw text from the AI's response
+        const rawText = response.text();
+        
+        // Find the start and end of the JSON array within the text
+        const startIndex = rawText.indexOf('[');
+        const endIndex = rawText.lastIndexOf(']');
+        
+        // Extract just the JSON part
+        const jsonString = rawText.substring(startIndex, endIndex + 1);
+        
+        // Safely parse the clean JSON string
+        const responseData = JSON.parse(jsonString);
+        // --- End of FIX ---
 
         return {
             statusCode: 200,
