@@ -19,8 +19,8 @@ body {
     margin: 0;
     padding: 2rem 1rem;
     display: flex;
-    flex-direction: column; /* Changed to allow footer at bottom */
-    align-items: center;
+    justify-content: center;
+    align-items: flex-start;
     min-height: 100vh;
 }
 
@@ -220,9 +220,11 @@ body {
     text-align: center;
 }
 
-/* --- NEW FOOTER STYLES --- */
+/* --- CORRECTED FOOTER STYLES --- */
 .app-footer {
     margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
     text-align: center;
     display: flex;
     gap: 1.5rem;
