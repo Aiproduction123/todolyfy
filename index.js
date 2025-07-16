@@ -83,12 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const subtaskList = document.createElement('ul');
             subtaskList.className = 'subtask-list';
             subtasks.forEach(subtask => {
+                // --- FIX STARTS HERE ---
+                // This handles both strings (from AI) and objects (from localStorage)
+                const isSubtaskObject = typeof subtask === 'object' && subtask !== null;
+                const subtaskText = isSubtaskObject ? subtask.text : subtask;
+                const subtaskIsDone = isSubtaskObject ? subtask.isDone : false;
+
                 const subtaskLi = document.createElement('li');
                 subtaskLi.className = 'subtask-item';
-                if (subtask.isDone) subtaskLi.classList.add('done');
-                const subtaskContent = createTaskContent(subtask.text, subtask.isDone);
+                if (subtaskIsDone) subtaskLi.classList.add('done');
+
+                const subtaskContent = createTaskContent(subtaskText, subtaskIsDone);
                 subtaskLi.appendChild(subtaskContent);
                 subtaskList.appendChild(subtaskLi);
+                // --- FIX ENDS HERE ---
             });
             li.appendChild(subtaskList);
         }
