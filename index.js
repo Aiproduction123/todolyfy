@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const addTaskBtn = document.getElementById('add-task-btn');
     const errorContainer = document.getElementById('error-container');
 
+    // Load tasks from localStorage when the page opens
+    loadTasks();
+
     // --- EVENT LISTENERS ---
 
     // Handle form submission to add a new main task
@@ -30,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const subtasks = await response.json();
             createMainTask(taskText, subtasks);
             taskInput.value = '';
+            saveTasks(); // Save after adding a new task
 
         } catch (error) {
             console.error('Error generating subtasks:', error);
@@ -47,12 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target.matches('.task-checkbox')) {
             const taskElement = target.closest('.task-item, .subtask-item');
             taskElement.classList.toggle('done');
+            saveTasks(); // Save after toggling done state
         }
 
         // Handle delete button clicks
         if (target.matches('.delete-btn, .delete-btn *')) {
             const taskElement = target.closest('.task-item, .subtask-item');
             taskElement.remove();
+            saveTasks(); // Save after deleting
         }
 
         // Handle edit button clicks
@@ -65,22 +71,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UI CREATION FUNCTIONS ---
 
     // Creates a complete main task with its subtasks
-    function createMainTask(mainTaskText, subtasks) {
+    function createMainTask(mainTaskText, subtasks, isDone = false) {
         const li = document.createElement('li');
         li.className = 'task-item';
+        if (isDone) li.classList.add('done');
 
-        // Create the main task's content
-        const mainTaskContent = createTaskContent(mainTaskText);
+        const mainTaskContent = createTaskContent(mainTaskText, isDone);
         li.appendChild(mainTaskContent);
         
-        // If there are subtasks, create and append them
         if (subtasks && subtasks.length > 0) {
             const subtaskList = document.createElement('ul');
             subtaskList.className = 'subtask-list';
-            subtasks.forEach(subtaskText => {
+            subtasks.forEach(subtask => {
                 const subtaskLi = document.createElement('li');
                 subtaskLi.className = 'subtask-item';
-                const subtaskContent = createTaskContent(subtaskText, false);
+                if (subtask.isDone) subtaskLi.classList.add('done');
+                const subtaskContent = createTaskContent(subtask.text, subtask.isDone);
                 subtaskLi.appendChild(subtaskContent);
                 subtaskList.appendChild(subtaskLi);
             });
@@ -91,12 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Creates the inner HTML for any task or subtask
-    function createTaskContent(text) {
+    function createTaskContent(text, isChecked) {
         const fragment = document.createDocumentFragment();
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.className = 'task-checkbox';
+        checkbox.checked = isChecked;
         fragment.appendChild(checkbox);
 
         const textSpan = document.createElement('span');
@@ -130,15 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = currentText;
         input.className = 'task-text'; // Reuse style
         
-        // Replace the text span with the input field
         textSpan.replaceWith(input);
         input.focus();
 
-        // When the user clicks away or presses Enter, save the changes
         const saveChanges = () => {
             const newText = input.value.trim();
-            textSpan.textContent = newText || currentText; // Revert if empty
+            textSpan.textContent = newText || currentText;
             input.replaceWith(textSpan);
+            saveTasks(); // Save after editing
         };
         
         input.addEventListener('blur', saveChanges);
@@ -147,6 +153,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveChanges();
             }
         });
+    }
+
+    // --- DATA PERSISTENCE FUNCTIONS ---
+    function saveTasks() {
+        const tasks = [];
+        document.querySelectorAll('#task-list > .task-item').forEach(li => {
+            const mainTaskText = li.querySelector('.task-text').textContent;
+            const mainTaskDone = li.classList.contains('done');
+            const subtasks = [];
+            li.querySelectorAll('.subtask-item').forEach(subLi => {
+                subtasks.push({
+                    text: subLi.querySelector('.task-text').textContent,
+                    isDone: subLi.classList.contains('done')
+                });
+            });
+            tasks.push({ text: mainTaskText, isDone: mainTaskDone, subtasks });
+        });
+        localStorage.setItem('todolyfyTasks', JSON.stringify(tasks));
+    }
+
+    function loadTasks() {
+        const tasksJSON = localStorage.getItem('todolyfyTasks');
+        if (tasksJSON) {
+            const tasks = JSON.parse(tasksJSON);
+            taskList.innerHTML = '';
+            // Load tasks in reverse so they appear in the correct order (newest first)
+            tasks.reverse().forEach(task => {
+                createMainTask(task.text, task.subtasks, task.isDone);
+            });
+        }
     }
 
     // --- UTILITY FUNCTIONS ---
