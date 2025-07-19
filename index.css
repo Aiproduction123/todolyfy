@@ -11,6 +11,7 @@
     --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     --drag-ghost-color: rgba(108, 92, 231, 0.2);
     --success-color: #28a745;
+    --success-glow: rgba(40, 167, 69, 0.25); /* NEW: Glow for saved state */
 }
 
 body {
@@ -188,7 +189,7 @@ body {
     max-height: 1000px;
 }
 
-/* === NEW AND IMPROVED NOTES SECTION === */
+/* === NOTES SECTION WITH SAVED STATE === */
 
 .task-notes {
     position: relative;
@@ -198,7 +199,7 @@ body {
 .task-notes textarea {
     width: 100%;
     min-height: 48px;
-    padding: 0.85rem 4rem 0.85rem 1rem; /* Right padding makes room for the button */
+    padding: 0.85rem 4.5rem 0.85rem 1rem; /* More padding for wider button */
     border-radius: 8px;
     border: 1px solid var(--border-color);
     font-family: inherit;
@@ -217,6 +218,12 @@ body {
     box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
 }
 
+/* NEW: Style for the saved state */
+.task-notes.notes-saved textarea {
+    border-color: var(--success-color);
+    box-shadow: 0 0 0 3px var(--success-glow);
+}
+
 .task-notes textarea::placeholder {
     color: var(--subtle-text);
 }
@@ -225,9 +232,8 @@ body {
     position: absolute;
     right: 8px;
     top: 50%;
-    transform: translateY(-50%);
     height: 32px;
-    width: 60px;
+    width: 60px; /* Default width for "Save" */
     background-color: var(--primary-color);
     border: none;
     border-radius: 6px;
@@ -242,10 +248,9 @@ body {
     opacity: 0;
     visibility: hidden;
     transform: translateY(-50%) scale(0.95);
-    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease, background-color 0.2s ease;
+    transition: all 0.2s ease; /* Animate all properties */
 }
 
-/* Show button when textarea is focused or has content */
 .task-notes:focus-within .save-notes-btn,
 .task-notes textarea:not(:placeholder-shown) + .save-notes-btn {
     opacity: 1;
@@ -264,11 +269,15 @@ body {
     stroke-width: 2.5;
 }
 
+/* MODIFIED: Style for after the save is successful */
 .save-notes-btn.saved {
     background-color: var(--success-color);
+    width: 75px; /* Wider to fit "Saved!" */
+    cursor: default;
 }
 
-/* === END OF NEW NOTES SECTION === */
+/* === END OF NOTES SECTION === */
+
 
 .subtask-list {
     list-style: none;

@@ -42,7 +42,6 @@ function saveTasks() {
 function renderApp() {
   if (!taskListEl) return;
   
-  // Filter tasks based on the current view
   const tasksToRender = tasks.filter(task => {
       if (currentView === 'active') return !task.completed;
       if (currentView === 'completed') return task.completed;
@@ -97,7 +96,6 @@ function createTaskElement(task) {
   
   taskItem.querySelector('.task-header .task-checkbox').addEventListener('change', () => handleToggleTask(task.id));
 
-  // UPDATED: Add event listeners for notes functionality
   const notesTextarea = taskItem.querySelector('.task-notes-textarea');
   const saveNotesBtn = taskItem.querySelector('.save-notes-btn');
   if (notesTextarea && saveNotesBtn) {
@@ -266,35 +264,52 @@ function handleToggleAccordion(taskId) {
     }
 }
 
-// UPDATED: New function to handle saving notes with explicit button click
+// === NEW AND IMPROVED handleSaveNotes FUNCTION ===
 function handleSaveNotes(taskId) {
     const taskElement = document.getElementById(taskId);
-    const textarea = taskElement.querySelector('.task-notes-textarea');
+    if (!taskElement) return;
+
     const saveBtn = taskElement.querySelector('.save-notes-btn');
-    
-    if (!textarea || !saveBtn) return;
-    
-    const notes = textarea.value.trim();
+    const textarea = taskElement.querySelector('.task-notes-textarea');
+    const notesContainer = taskElement.querySelector('.task-notes');
+
+    if (!saveBtn || !textarea || !notesContainer) return;
+
     const task = tasks.find(t => t.id === taskId);
-    
     if (task) {
-        task.notes = notes;
+        // 1. Save the actual data from the textarea
+        task.notes = textarea.value;
         saveTasks();
-        
-        // Visual feedback
-        const originalText = saveBtn.innerHTML;
+
+        // 2. Add CSS classes to trigger the "saved" visual state
+        notesContainer.classList.add('notes-saved');
+        saveBtn.classList.add('saved');
+        saveBtn.disabled = true;
+
+        // 3. Change button content to "Saved!" with a checkmark icon
         saveBtn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
             Saved!
         `;
-        saveBtn.style.backgroundColor = '#28a745';
-        
+
+        // 4. Set a timer to revert the button and styles back to normal after 2 seconds
         setTimeout(() => {
-            saveBtn.innerHTML = originalText;
-            saveBtn.style.backgroundColor = '';
-        }, 2000);
+            notesContainer.classList.remove('notes-saved');
+            saveBtn.classList.remove('saved');
+            saveBtn.disabled = false;
+
+            // 5. Restore the original "Save" button content
+            saveBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save
+            `;
+        }, 2000); // 2000 milliseconds = 2 seconds
     }
 }
 
