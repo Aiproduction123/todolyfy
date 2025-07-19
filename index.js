@@ -76,6 +76,17 @@ function createTaskElement(task) {
   taskItem.querySelector('.main-due-date')?.addEventListener('change', (e) => handleSetDueDate(task.id, e.target.value));
   taskItem.querySelector('.task-notes-textarea')?.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
   
+  // Add event listeners for subtask checkboxes
+  taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
+      const subtaskId = subtaskEl.dataset.subtaskId;
+      if (!subtaskId) return;
+      
+      const checkbox = subtaskEl.querySelector('input[type="checkbox"]');
+      if(checkbox) {
+          checkbox.addEventListener('change', () => handleToggleSubtask(task.id, subtaskId));
+      }
+  });
+
   return taskItem;
 }
 
@@ -252,6 +263,16 @@ function handleDeleteTask(taskId) {
   tasks = tasks.filter(task => task.id !== taskId);
   saveTasks();
   renderApp();
+}
+
+function handleToggleSubtask(taskId, subtaskId) {
+    const task = tasks.find(t => t.id === taskId);
+    const subtask = task?.subtasks.find(st => st.id === subtaskId);
+    if(subtask) {
+        subtask.completed = !subtask.completed;
+        saveTasks();
+        renderApp();
+    }
 }
 
 // --- Initial Load ---
