@@ -261,11 +261,16 @@ function handleDeleteTask(taskId) {
   renderApp();
 }
 
+// UPDATED: Checkbox logic is now improved
 function handleToggleTask(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if(task) {
         task.completed = !task.completed;
-        task.subtasks.forEach(subtask => subtask.completed = task.completed);
+        // If the main task is checked, all subtasks are checked.
+        // If it's unchecked, subtasks are NOT affected.
+        if (task.completed) {
+            task.subtasks.forEach(subtask => subtask.completed = true);
+        }
         saveTasks();
         renderApp();
     }
@@ -276,6 +281,7 @@ function handleToggleSubtask(taskId, subtaskId) {
     const subtask = task?.subtasks.find(st => st.id === subtaskId);
     if(subtask) {
         subtask.completed = !subtask.completed;
+        // If all subtasks are complete, mark the main task as complete
         if (task.subtasks.every(st => st.completed)) {
             task.completed = true;
         } else {

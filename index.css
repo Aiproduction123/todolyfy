@@ -114,11 +114,10 @@ body {
     background-color: var(--container-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    margin-bottom: 0.25rem; /* Greatly reduced margin */
+    margin-bottom: 0.25rem;
     overflow: hidden;
 }
 
-/* ADDED: Style for completed main tasks */
 .task-item.completed .task-header h2 {
     text-decoration: line-through;
     color: var(--done-color);
@@ -128,7 +127,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 1rem; /* Greatly reduced padding */
+    padding: 0.5rem 1rem;
     cursor: pointer;
     user-select: none;
     gap: 0.75rem;
@@ -142,28 +141,28 @@ body {
 }
 
 .task-header h2 {
-    font-size: 1rem; /* Smaller font size */
+    font-size: 1rem;
     font-weight: 500;
     margin: 0;
 }
 
 .task-body {
     border-top: 1px solid var(--border-color);
-    padding: 0 1rem; /* Reduced padding */
+    padding: 0 1rem;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out, padding 0.3s ease-out;
 }
 
 .task-item[data-open="true"] .task-body {
-    padding: 0.5rem 1rem; /* Reduced padding when open */
+    padding: 0.5rem 1rem;
     max-height: 1000px;
 }
 
 .task-notes textarea {
     width: 100%;
-    min-height: 42px; /* UPDATED: Set minimum height to match input box */
-    padding: 0.75rem 1rem; /* Match input box padding */
+    min-height: 22px;
+    padding: 0.5rem 0.75rem;
     border-radius: 6px;
     border: 1px solid var(--border-color);
     font-family: inherit;
@@ -173,6 +172,7 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     overflow-y: hidden;
+    box-sizing: border-box;
 }
 
 .subtask-list {
@@ -185,7 +185,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.15rem 0; /* Greatly reduced padding */
+    padding: 0.15rem 0;
 }
 
 .subtask-content {
@@ -202,12 +202,12 @@ body {
 
 .task-text {
     flex-grow: 1;
-    font-size: 0.95rem; /* Smaller font size */
+    font-size: 0.95rem;
 }
 
 .no-subtasks-message {
     color: var(--subtle-text);
-    padding: 0.5rem 0; /* Reduced padding */
+    padding: 0.5rem 0;
     text-align: center;
     font-style: italic;
     font-size: 0.9rem;
@@ -231,7 +231,7 @@ body {
 }
 
 .task-actions button svg {
-    width: 16px; /* Smaller icons */
+    width: 16px;
     height: 16px;
     stroke: currentColor;
 }
@@ -270,7 +270,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* ADDED: Styles for checkboxes */
 .task-checkbox {
     appearance: none;
     -webkit-appearance: none;
