@@ -74,10 +74,8 @@ function createTaskElement(task) {
     if (!e.target.closest('button')) handleToggleAccordion(task.id);
   });
   taskItem.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
-  taskItem.querySelector('.regenerate-btn')?.addEventListener('click', () => handleRegenerateSubtasks(task.id, task.text));
   taskItem.querySelector('.task-notes-textarea')?.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
   
-  // RESTORED: Add listeners for all subtask actions
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
       const subtaskId = subtaskEl.dataset.subtaskId;
       if (!subtaskId) return;
@@ -93,10 +91,8 @@ function createTaskElement(task) {
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
     
+    // REMOVED: Regenerate button and toolbar. Updated empty message.
     return `
-    <div class="task-toolbar">
-        <button class="regenerate-btn">Regenerate</button>
-    </div>
     ${hasSubtasks ? `
     <ul class="subtask-list" data-task-id="${task.id}">
       ${task.subtasks.map(subtask => `
@@ -105,14 +101,17 @@ function createSubtasksHtml(task) {
             <input type="checkbox" id="${subtask.id}" ${subtask.completed ? 'checked' : ''} />
             <span class="task-text">${subtask.text}</span>
           </div>
-          <!-- RESTORED: Edit and Delete buttons for subtasks -->
           <div class="subtask-actions">
-            <button class="edit-btn" aria-label="Edit subtask">✏️</button>
-            <button class="delete-btn" aria-label="Delete subtask">🗑️</button>
+            <button class="edit-btn" aria-label="Edit subtask">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            </button>
+            <button class="delete-btn" aria-label="Delete subtask">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
           </div>
         </li>
       `).join('')}
-    </ul>` : '<p class="no-subtasks-message">No subtasks were generated. Try regenerating.</p>'}
+    </ul>` : '<p class="no-subtasks-message">No subtasks were generated for this task.</p>'}
     <div class="task-notes">
         <textarea class="task-notes-textarea" placeholder="Add notes...">${task.notes || ''}</textarea>
     </div>
@@ -190,7 +189,6 @@ async function handleFormSubmit(e) {
   }
 }
 
-// FIXED: This function now safely handles non-JSON success responses
 async function generateSubtasksForTask(taskText) {
     const response = await fetch('/api/generate-subtasks', {
         method: 'POST',
@@ -215,33 +213,11 @@ async function generateSubtasksForTask(taskText) {
         return subtasks || [];
     } catch (e) {
         console.error("Failed to parse successful AI response as JSON:", responseText);
-        return []; // Treat non-JSON response as no subtasks
+        return [];
     }
 }
 
-async function handleRegenerateSubtasks(taskId, taskText) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    task.isGenerating = true;
-    renderApp();
-
-    try {
-        const regeneratedSubtasks = await generateSubtasksForTask(taskText);
-        task.subtasks = (regeneratedSubtasks || []).map((text, i) => ({
-            id: `${taskId}-subtask-${Date.now()}-${i}`,
-            text,
-            completed: false
-        }));
-    } catch(error) {
-        console.error('Error regenerating subtasks:', error);
-        alert(`Failed to regenerate subtasks: ${error.message}`);
-    } finally {
-        task.isGenerating = false;
-        saveTasks();
-        renderApp();
-    }
-}
+// REMOVED: handleRegenerateSubtasks function is no longer needed
 
 function handleToggleAccordion(taskId) {
     const task = tasks.find(t => t.id === taskId);
@@ -276,7 +252,6 @@ function handleToggleSubtask(taskId, subtaskId) {
     }
 }
 
-// RESTORED: Function to delete a subtask
 function handleDeleteSubtask(taskId, subtaskId) {
   const task = tasks.find(t => t.id === taskId);
   if (task) {
@@ -286,7 +261,6 @@ function handleDeleteSubtask(taskId, subtaskId) {
   }
 }
 
-// RESTORED: Function to edit a subtask
 function handleEditSubtask(editBtn, taskId, subtaskId) {
   const subtaskItem = editBtn.closest('.subtask-item');
   const contentDiv = subtaskItem.querySelector('.subtask-content');
@@ -303,7 +277,7 @@ function handleEditSubtask(editBtn, taskId, subtaskId) {
     saveTasks();
     renderApp();
   } else {
-    editBtn.innerHTML = '💾';
+    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
     editBtn.setAttribute('aria-label', 'Save subtask');
     const textSpan = contentDiv.querySelector('.task-text');
     const currentText = textSpan.textContent || '';

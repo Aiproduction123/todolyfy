@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const AI_MODEL_NAME = 'gemini-2.5-flash';
+const AI_MODEL_NAME = 'gemini-1.5-flash';
 
 exports.handler = async function(event, context) {
     const headers = {
@@ -32,16 +32,14 @@ exports.handler = async function(event, context) {
         const genAI = new GoogleGenerativeAI(process.env.API_KEY);
         const model = genAI.getGenerativeModel({ model: AI_MODEL_NAME });
         
-        // A more direct prompt for the AI
-        const prompt = `You are a task breakdown assistant. Given the task "${taskText}", provide a JSON object with a "subtasks" key containing an array of 2-4 actionable subtasks. Your response MUST be only the JSON object. Example: {"subtasks": ["Subtask 1", "Subtask 2"]}`;
+        // UPDATED: Prompt now specifically asks for 2-3 subtasks.
+        const prompt = `You are a task breakdown assistant. Given the task "${taskText}", provide a JSON object with a "subtasks" key containing an array of 2-3 actionable subtasks. Your response MUST be only the JSON object. Example: {"subtasks": ["Subtask 1", "Subtask 2"]}`;
 
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
         
-        // Robust JSON extraction
         let subtasks = [];
         try {
-            // Find the JSON part of the response, even if the AI adds extra text
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 const parsedResponse = JSON.parse(jsonMatch[0]);
@@ -51,7 +49,6 @@ exports.handler = async function(event, context) {
             }
         } catch (parseError) {
             console.error('Failed to parse AI response:', responseText, parseError);
-            // If parsing fails, we'll return an empty array, which the frontend handles gracefully.
         }
 
         return {
