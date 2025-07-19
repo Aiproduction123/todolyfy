@@ -461,4 +461,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadState();
   renderApp();
+
+  // Google Login Button Logic
+  const loginBtn = document.getElementById('google-login-btn');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+      window.location.href = '/.netlify/functions/auth-start';
+    });
+  }
+
+  // If redirected back from Google, show user info
+  const userInfoDiv = document.getElementById('user-info');
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('name') && params.has('picture')) {
+    userInfoDiv.innerHTML = `
+      <span>Welcome, ${params.get('name')}</span>
+      <img src="${params.get('picture')}" alt="User Avatar" style="width:32px;height:32px;border-radius:50%;margin-left:8px;">
+    `;
+    if (loginBtn) loginBtn.style.display = 'none';
+  }
 });
