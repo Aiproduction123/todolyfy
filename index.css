@@ -188,7 +188,7 @@ body {
     max-height: 1000px;
 }
 
-/* === NEW TRELLO-STYLE NOTES SECTION === */
+/* === REFINED TRELLO-STYLE NOTES SECTION === */
 .task-notes {
     margin-top: 0.75rem;
 }
@@ -199,10 +199,13 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
-    min-height: 40px;
-    box-sizing: border-box;
-    white-space: pre-wrap; /* Respects line breaks */
-    word-wrap: break-word; /* Prevents overflow */
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    
+    /* --- ADJUSTMENTS FOR ALIGNMENT AND HEIGHT --- */
+    display: flex;
+    align-items: center;
+    min-height: 22px; /* Set a minimum height based on font-size/line-height */
 }
 
 .notes-display:hover {
