@@ -6,7 +6,8 @@ exports.handler = async function(event, context) {
     client_id: process.env.APPLE_CLIENT_ID,
     redirect_uri: `${process.env.URL}/.netlify/functions/apple-callback`,
     scope: 'name email',
-    state: 'todolyfy'
+    state: 'todolyfy',
+    response_mode: 'form_post'
   };
   const url = `https://appleid.apple.com/auth/authorize?${querystring.stringify(params)}`;
   return {

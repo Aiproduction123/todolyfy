@@ -2,7 +2,14 @@ const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
 
 exports.handler = async function(event, context) {
-  const code = event.queryStringParameters.code;
+  let code;
+  if (event.httpMethod === 'POST') {
+    const body = event.body;
+    const params = new URLSearchParams(body);
+    code = params.get('code');
+  } else {
+    code = event.queryStringParameters.code;
+  }
 
   // Create client secret JWT
   const claims = {
