@@ -188,17 +188,17 @@ body {
     max-height: 1000px;
 }
 
-/* === FINAL TRELLO-STYLE NOTES SECTION === */
+/* === DEFINITIVE TRELLO-STYLE NOTES SECTION === */
 .task-notes {
     margin-top: 0.75rem;
 }
 
-/* 1. View Mode (Default) */
+/* 1. View Mode (Default) - THIS IS WHERE THE FIX IS */
 .notes-display {
     display: flex;
-    align-items: flex-start; /* Aligns icon with the top of the text block */
-    gap: 0.75rem; /* Space between icon and text */
-    padding: 0.5rem; /* Smaller padding for a tighter look */
+    align-items: center;      /* Vertically aligns icon and text together */
+    gap: 0.75rem;
+    padding: 0.35rem 0.5rem;  /* Drastically reduced padding for single-line height */
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -212,15 +212,15 @@ body {
     width: 18px;
     height: 18px;
     stroke: var(--subtle-text);
-    flex-shrink: 0; /* Prevents the icon from shrinking */
-    margin-top: 2px; /* Fine-tune vertical alignment */
+    flex-shrink: 0; /* Prevents icon from shrinking */
 }
 
 .notes-text {
+    flex-grow: 1;
     color: var(--text-color);
     white-space: pre-wrap;
     word-wrap: break-word;
-    line-height: 1.5; /* Improves readability of multi-line notes */
+    line-height: 1.5;
 }
 
 .notes-display.is-empty .notes-text {
