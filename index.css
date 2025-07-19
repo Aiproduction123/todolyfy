@@ -104,10 +104,9 @@ body {
     cursor: not-allowed;
 }
 
-/* UPDATED: Modern tab container styles */
 .task-tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Creates two equal columns */
+    grid-template-columns: 1fr 1fr;
     background-color: var(--background-color);
     border-radius: 8px;
     padding: 0.25rem;
@@ -123,7 +122,7 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    border-radius: 6px; /* Rounded corners for the active state */
+    border-radius: 6px;
     text-align: center;
     transition: background-color 0.2s, color 0.2s;
 }
