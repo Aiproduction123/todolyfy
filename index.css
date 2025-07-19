@@ -188,17 +188,17 @@ body {
     max-height: 1000px;
 }
 
-/* === FINAL & CORRECT NOTES SECTION === */
+/* === CORRECTED NOTES SECTION === */
 .task-notes {
     margin-top: 0.75rem;
 }
 
-/* 1. View Mode (Default) */
+/* View Mode - Corrected for perfect height and alignment */
 .notes-display {
     display: flex;
-    align-items: flex-start;  /* Align icon and text block to the top */
+    align-items: center; /* This is the key for vertical alignment */
     gap: 0.75rem;
-    padding: 6px 8px;         /* Minimal padding for a tight fit */
+    padding: 4px 8px;   /* Minimal padding to keep height tight */
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -213,15 +213,14 @@ body {
     height: 18px;
     stroke: var(--subtle-text);
     flex-shrink: 0;
-    margin-top: 2px; /* Precision nudge to align icon with text */
 }
 
 .notes-text {
+    flex-grow: 1;
     color: var(--text-color);
     white-space: pre-wrap;
     word-wrap: break-word;
-    line-height: 1.4; /* Tight and readable line height */
-    padding-top: 1px; /* Final alignment nudge */
+    line-height: 1.5; /* This determines the text's own height */
 }
 
 .notes-display.is-empty .notes-text {
@@ -232,7 +231,7 @@ body {
     display: none;
 }
 
-/* 2. Edit Mode */
+/* Edit Mode (unchanged) */
 .notes-editor {
     display: none;
 }
@@ -303,6 +302,7 @@ body {
 }
 
 /* === END OF NOTES SECTION === */
+
 
 .subtask-list {
     list-style: none;
