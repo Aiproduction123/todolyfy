@@ -187,10 +187,11 @@ body {
     max-height: 1000px;
 }
 
+/* UPDATED: Styles for the notes textarea */
 .task-notes textarea {
     width: 100%;
-    min-height: 24px;
-    padding: 0.5rem 0.75rem;
+    min-height: 42px; /* Taller default height */
+    padding: 0.75rem 1rem; /* Increased padding to center placeholder */
     border-radius: 6px;
     border: 1px solid var(--border-color);
     font-family: inherit;
@@ -200,7 +201,7 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     overflow-y: hidden;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Ensures padding doesn't cause overflow */
 }
 
 .subtask-list {

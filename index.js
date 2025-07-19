@@ -3,11 +3,13 @@ const TASK_STORAGE_KEY = 'todolyfy-tasks';
 
 // --- Global State ---
 let tasks = [];
+let currentView = 'active'; // 'active' or 'completed'
 
 // --- DOM Elements ---
 const taskForm = document.getElementById('task-form');
 const taskInput = document.getElementById('task-input');
 const taskListEl = document.getElementById('task-list');
+const tabsContainer = document.querySelector('.task-tabs');
 
 // --- State Management ---
 function loadState() {
@@ -19,7 +21,7 @@ function loadState() {
           task.isGenerating = false;
           if (task.isOpen === undefined) task.isOpen = true;
           if (task.notes === undefined) task.notes = '';
-          if (task.completed === undefined) task.completed = false; // Add completed state
+          if (task.completed === undefined) task.completed = false;
       });
     }
   } catch (error) {
@@ -40,15 +42,20 @@ function saveTasks() {
 function renderApp() {
   if (!taskListEl) return;
   
-  const openTasks = new Set(tasks.filter(t => t.isOpen).map(t => t.id));
-  
+  // Filter tasks based on the current view
+  const tasksToRender = tasks.filter(task => {
+      if (currentView === 'active') return !task.completed;
+      if (currentView === 'completed') return task.completed;
+      return true;
+  });
+
   taskListEl.innerHTML = '';
-  tasks.forEach(task => {
-    if (openTasks.has(task.id)) task.isOpen = true;
+  tasksToRender.forEach(task => {
     const taskElement = createTaskElement(task);
     taskListEl.appendChild(taskElement);
   });
 
+  updateActiveTab();
   initSortable();
 }
 
@@ -140,16 +147,17 @@ function createSubtasksHtml(task) {
 
 // --- Drag and Drop ---
 function initSortable() {
-    if (taskListEl) {
+    if (taskListEl && currentView === 'active') {
         new Sortable(taskListEl, {
             animation: 150,
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
             onEnd: () => {
-                const newTasks = Array.from(taskListEl.children).map(item => {
+                const activeTasks = Array.from(taskListEl.children).map(item => {
                     return tasks.find(t => t.id === item.dataset.id);
                 }).filter(Boolean);
-                tasks = newTasks;
+                const completedTasks = tasks.filter(t => t.completed);
+                tasks = [...activeTasks, ...completedTasks];
                 saveTasks();
             }
         });
@@ -178,6 +186,7 @@ async function handleFormSubmit(e) {
   };
 
   tasks.unshift(newTask);
+  currentView = 'active';
   renderApp(); 
 
   try {
@@ -261,13 +270,10 @@ function handleDeleteTask(taskId) {
   renderApp();
 }
 
-// UPDATED: Checkbox logic is now improved
 function handleToggleTask(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if(task) {
         task.completed = !task.completed;
-        // If the main task is checked, all subtasks are checked.
-        // If it's unchecked, subtasks are NOT affected.
         if (task.completed) {
             task.subtasks.forEach(subtask => subtask.completed = true);
         }
@@ -281,7 +287,6 @@ function handleToggleSubtask(taskId, subtaskId) {
     const subtask = task?.subtasks.find(st => st.id === subtaskId);
     if(subtask) {
         subtask.completed = !subtask.completed;
-        // If all subtasks are complete, mark the main task as complete
         if (task.subtasks.length > 0 && task.subtasks.every(st => st.completed)) {
             task.completed = true;
         } else {
@@ -390,9 +395,25 @@ function autoResizeTextarea(event) {
     textarea.style.height = textarea.scrollHeight + 'px';
 }
 
+function updateActiveTab() {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === currentView);
+    });
+}
+
 // --- Initial Load ---
 document.addEventListener('DOMContentLoaded', () => {
   if (taskForm) taskForm.addEventListener('submit', handleFormSubmit);
+  
+  if (tabsContainer) {
+      tabsContainer.addEventListener('click', (e) => {
+          if (e.target.matches('.tab-btn')) {
+              currentView = e.target.dataset.view;
+              renderApp();
+          }
+      });
+  }
+
   loadState();
   renderApp();
 });
