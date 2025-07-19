@@ -104,6 +104,35 @@ body {
     cursor: not-allowed;
 }
 
+/* UPDATED: Modern tab container styles */
+.task-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Creates two equal columns */
+    background-color: var(--background-color);
+    border-radius: 8px;
+    padding: 0.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--subtle-text);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px; /* Rounded corners for the active state */
+    text-align: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.tab-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
 #task-list {
     list-style: none;
     padding: 0;
@@ -161,7 +190,7 @@ body {
 
 .task-notes textarea {
     width: 100%;
-    min-height: 22px;
+    min-height: 24px;
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
     border: 1px solid var(--border-color);
