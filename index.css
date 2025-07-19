@@ -196,8 +196,8 @@ body {
 /* 1. View Mode (Default) */
 .notes-display {
     display: flex;
-    align-items: center; /* Aligns items to the top */
-    gap: 0.5rem;
+    align-items: center; /* Align items vertically centered */
+    gap: 0.75rem;
     padding: 4px 8px; /* Minimal padding */
     border-radius: 6px;
     cursor: pointer;
@@ -213,7 +213,7 @@ body {
     height: 18px;
     stroke: var(--subtle-text);
     flex-shrink: 0;
-    margin-top: 0; /* Precision alignment */
+    margin-top: 0; /* Remove extra margin */
 }
 
 .notes-text {
@@ -221,14 +221,16 @@ body {
     padding: 0;
     margin: 0;
     color: var(--text-color);
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for long text */
     line-height: 1.4;
+    height: 18px; /* Match icon height for single row */
 }
 
 .notes-display.is-empty .notes-text {
     color: var(--subtle-text);
-    line-height: 1.4; /* Ensure placeholder has same line-height */
+    line-height: 1.4;
 }
 
 .task-notes.is-editing .notes-display {
@@ -246,8 +248,8 @@ body {
 
 .notes-editor textarea {
     width: 100%;
-    height: 36px; /* Set the height to match a single row */
-    padding: 0.75rem 1rem;
+    min-height: 18px; /* Single row height */
+    padding: 0.25rem 0.5rem; /* Reduced padding */
     border-radius: 8px;
     border: 1px solid var(--border-color);
     font-family: inherit;
