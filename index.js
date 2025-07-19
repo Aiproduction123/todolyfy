@@ -51,22 +51,13 @@ function saveTheme(theme) {
 function renderApp() {
   if (!taskListEl) return;
   
-  // To preserve focus and other states, we intelligently update instead of clearing all
-  const openTasks = new Set(tasks.filter(t => t.isOpen).map(t => t.id));
-  
-  // Store scroll position to prevent jumping
-  const scrollPosition = { x: window.scrollX, y: window.scrollY };
-
   taskListEl.innerHTML = ''; // Clear and re-render
   tasks.forEach(task => {
-    // Restore open state
-    if (openTasks.has(task.id)) task.isOpen = true;
     const taskElement = createTaskElement(task);
     taskListEl.appendChild(taskElement); // Use appendChild to maintain order
   });
 
   initSortable(); // Initialize drag-and-drop on the new elements
-  window.scrollTo(scrollPosition.x, scrollPosition.y); // Restore scroll position
 }
 
 
@@ -191,6 +182,10 @@ async function handleFormSubmit(e) {
   const taskText = taskInput.value.trim();
   if (!taskText) return;
 
+  // Disable form to prevent multiple submissions
+  taskInput.disabled = true;
+  taskForm.querySelector('button').disabled = true;
+
   const newTask = {
     id: `task-${Date.now()}`,
     text: taskText,
@@ -198,36 +193,51 @@ async function handleFormSubmit(e) {
     isGenerating: true,
     isOpen: true,
     dueDate: null,
-    notes: '', // Initialize notes
+    notes: '',
   };
 
-  tasks.unshift(newTask); // Add to the beginning
-  saveTasks();
+  // Add task to the start of the list and render immediately
+  tasks.unshift(newTask);
   renderApp(); 
 
-  const originalTaskText = taskInput.value;
-  taskInput.value = '';
-  taskInput.disabled = true;
-  taskForm.querySelector('button').disabled = true;
-
   try {
-    await generateSubtasksForTask(newTask.id, originalTaskText);
+    const generatedSubtasks = await generateSubtasksForTask(taskText);
+    
+    // Find the task by ID and update it with the new subtasks
+    const taskToUpdate = tasks.find(t => t.id === newTask.id);
+    if (taskToUpdate) {
+        taskToUpdate.subtasks = generatedSubtasks.map((text, i) => ({
+            id: `${newTask.id}-subtask-${Date.now()}-${i}`,
+            text,
+            completed: false
+        }));
+        if (generatedSubtasks.length === 0) {
+            alert("The AI couldn't generate subtasks for this item. Please try a different task.");
+        }
+    }
   } catch(error) {
     console.error('Error generating subtasks:', error);
     alert(`An error occurred: ${error.message}`);
-    tasks.shift(); // Remove the failed task
+    // If there was an error, remove the task from the list
+    tasks = tasks.filter(t => t.id !== newTask.id);
   } finally {
-    const task = tasks.find(t => t.id === newTask.id);
-    if(task) task.isGenerating = false;
+    // Find the task again to turn off the spinner, then re-render and save
+    const taskToUpdate = tasks.find(t => t.id === newTask.id);
+    if (taskToUpdate) {
+        taskToUpdate.isGenerating = false;
+    }
     saveTasks();
     renderApp();
+
+    // Re-enable the form
+    taskInput.value = '';
     taskInput.disabled = false;
     taskForm.querySelector('button').disabled = false;
     taskInput.focus();
   }
 }
 
-async function generateSubtasksForTask(taskId, taskText) {
+async function generateSubtasksForTask(taskText) {
     const response = await fetch('/api/generate-subtasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -246,17 +256,8 @@ async function generateSubtasksForTask(taskId, taskText) {
         throw new Error(errorMessage);
     }
 
-    const { subtasks: generatedSubtasks } = JSON.parse(responseText);
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
-    if (taskIndex > -1) {
-      if (generatedSubtasks && generatedSubtasks.length > 0) {
-        tasks[taskIndex].subtasks = generatedSubtasks.map((text, i) => ({
-          id: `${taskId}-subtask-${Date.now()}-${i}`, text, completed: false // More robust ID
-        }));
-      } else {
-         tasks[taskIndex].subtasks = [];
-      }
-    }
+    const { subtasks } = JSON.parse(responseText);
+    return subtasks || [];
 }
 
 async function handleRegenerateSubtasks(taskId, taskText) {
@@ -267,7 +268,12 @@ async function handleRegenerateSubtasks(taskId, taskText) {
     renderApp();
 
     try {
-        await generateSubtasksForTask(taskId, taskText);
+        const regeneratedSubtasks = await generateSubtasksForTask(taskText);
+        task.subtasks = regeneratedSubtasks.map((text, i) => ({
+          id: `${taskId}-subtask-${Date.now()}-${i}`,
+          text,
+          completed: false
+        }));
     } catch(error) {
         console.error('Error regenerating subtasks:', error);
         alert(`Failed to regenerate subtasks: ${error.message}`);
@@ -283,8 +289,8 @@ function handleToggleAccordion(taskId) {
     if (task) {
         task.isOpen = !task.isOpen;
         saveTasks();
-        const taskElement = document.getElementById(taskId);
-        taskElement.setAttribute('data-open', task.isOpen);
+        // The renderApp function will handle the visual update
+        renderApp();
     }
 }
 
