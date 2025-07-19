@@ -3,61 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todolyfy - AI Powered To-Do List</title>
+    <title>Todolyfy</title>
     <link rel="stylesheet" href="index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6TGRD6XSS5"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-6TGRD6XSS5');
-    </script>
-    <!-- End Google Analytics -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.9.0"
+  }
+}
+</script>
 </head>
 <body>
-    <main class="container">
-        <header class="app-header">
-            <svg class="logo" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 6C8 4.89543 8.89543 4 10 4H14C15.1046 4 16 4.89543 16 6V18C16 19.1046 15.1046 20 14 20H10C8.89543 20 8 19.1046 8 18V6Z" stroke-width="2"/>
-                <path d="M6 9H18" stroke-width="2" stroke-linecap="round"/>
-                <path d="M6 15H18" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <div class="header-text">
+    <div class="container">
+        <header>
+            <div class="title-container">
+                <svg class="logo" width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M20 50 H55 C 60 50, 60 50, 60 50 M60 50 L85 25 M60 50 L85 50 M60 50 L85 75" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
                 <h1>Todolyfy</h1>
-                <p>To do list that breaks down tasks</p>
             </div>
+            <p>Enter a task and let AI break it down for you.</p>
+            <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
         </header>
-
-        <form id="task-form" class="task-form">
-            <input 
-                type="text" 
-                id="task-input" 
-                placeholder="e.g., Plan a birthday party" 
-                required
-                aria-label="New task"
-            />
-            <button type="submit" id="add-task-btn">Add Task</button>
-        </form>
-
-        <section class="task-list-section">
-            <ul id="task-list">
-                <!-- Tasks will be dynamically added here -->
-            </ul>
-        </section>
-
-        <div id="error-container" class="error-container" style="display: none;"></div>
-
-        <footer class="app-footer">
-            <p>Bug reports & feature requests: <a href="mailto:info@todolyfy.com">info@todolyfy.com</a></p>
-            <p><a href="/privacy.html" target="_blank">Privacy Policy</a></p>
-        </footer>
-    </main>
-
-    <script src="index.js"></script>
+        <main>
+            <form id="task-form">
+                <input type="text" id="task-input" placeholder="What's your next big goal?" required aria-label="New task">
+                <button type="submit" aria-label="Add task">Add Task</button>
+            </form>
+            <section id="task-list" aria-live="polite"></section>
+        </main>
+    </div>
+    <script type="module" src="index.js"></script>
 </body>
 </html>
