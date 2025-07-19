@@ -1,6 +1,5 @@
 // --- Configuration ---
 const TASK_STORAGE_KEY = 'todolyfy-tasks';
-const THEME_STORAGE_KEY = 'todolyfy-theme';
 
 // --- Global State ---
 let tasks = [];
@@ -9,7 +8,6 @@ let tasks = [];
 const taskForm = document.getElementById('task-form');
 const taskInput = document.getElementById('task-input');
 const taskListEl = document.getElementById('task-list');
-const themeToggleBtn = document.getElementById('theme-toggle');
 
 // --- State Management ---
 function loadState() {
@@ -24,11 +22,6 @@ function loadState() {
           if (task.notes === undefined) task.notes = ''; // Add notes field if missing
       });
     }
-    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (storedTheme) {
-        document.body.setAttribute('data-theme', storedTheme);
-        themeToggleBtn.textContent = storedTheme === 'dark' ? '☀️' : '🌙';
-    }
   } catch (error) {
     console.error("Failed to load state from localStorage", error);
     tasks = [];
@@ -41,10 +34,6 @@ function saveTasks() {
   } catch (error) {
     console.error("Failed to save tasks to localStorage", error);
   }
-}
-
-function saveTheme(theme) {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
 }
 
 // --- Rendering ---
@@ -136,20 +125,22 @@ function createSubtasksHtml(task) {
 // --- Drag and Drop ---
 function initSortable() {
     // Main task list sorting
-    new Sortable(taskListEl, {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        dragClass: 'sortable-drag',
-        onEnd: (evt) => {
-            const newTasks = [];
-            taskListEl.querySelectorAll('.task-item').forEach(item => {
-                const task = tasks.find(t => t.id === item.dataset.id);
-                if (task) newTasks.push(task);
-            });
-            tasks = newTasks;
-            saveTasks();
-        }
-    });
+    if (taskListEl) {
+        new Sortable(taskListEl, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: (evt) => {
+                const newTasks = [];
+                taskListEl.querySelectorAll('.task-item').forEach(item => {
+                    const task = tasks.find(t => t.id === item.dataset.id);
+                    if (task) newTasks.push(task);
+                });
+                tasks = newTasks;
+                saveTasks();
+            }
+        });
+    }
 
     // Subtask list sorting
     document.querySelectorAll('.subtask-list').forEach(list => {
@@ -206,12 +197,12 @@ async function handleFormSubmit(e) {
     // Find the task by ID and update it with the new subtasks
     const taskToUpdate = tasks.find(t => t.id === newTask.id);
     if (taskToUpdate) {
-        taskToUpdate.subtasks = generatedSubtasks.map((text, i) => ({
+        taskToUpdate.subtasks = (generatedSubtasks || []).map((text, i) => ({
             id: `${newTask.id}-subtask-${Date.now()}-${i}`,
             text,
             completed: false
         }));
-        if (generatedSubtasks.length === 0) {
+        if (!generatedSubtasks || generatedSubtasks.length === 0) {
             alert("The AI couldn't generate subtasks for this item. Please try a different task.");
         }
     }
@@ -269,7 +260,7 @@ async function handleRegenerateSubtasks(taskId, taskText) {
 
     try {
         const regeneratedSubtasks = await generateSubtasksForTask(taskText);
-        task.subtasks = regeneratedSubtasks.map((text, i) => ({
+        task.subtasks = (regeneratedSubtasks || []).map((text, i) => ({
           id: `${taskId}-subtask-${Date.now()}-${i}`,
           text,
           completed: false
@@ -289,7 +280,6 @@ function handleToggleAccordion(taskId) {
     if (task) {
         task.isOpen = !task.isOpen;
         saveTasks();
-        // The renderApp function will handle the visual update
         renderApp();
     }
 }
@@ -308,7 +298,6 @@ function handleSetNotes(taskId, notes) {
     if(task) {
         task.notes = notes;
         saveTasks();
-        // No re-render needed for typing, saves performance
     }
 }
 
@@ -371,18 +360,9 @@ function handleEditSubtask(editBtn, taskId, subtaskId) {
   }
 }
 
-function handleThemeToggle() {
-    const currentTheme = document.body.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.body.setAttribute('data-theme', newTheme);
-    themeToggleBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
-    saveTheme(newTheme);
-}
-
 // --- Initial Load ---
 document.addEventListener('DOMContentLoaded', () => {
   if (taskForm) taskForm.addEventListener('submit', handleFormSubmit);
-  if (themeToggleBtn) themeToggleBtn.addEventListener('click', handleThemeToggle);
   loadState();
   renderApp();
 });
