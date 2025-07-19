@@ -1,223 +1,284 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const taskForm = document.getElementById('task-form');
-    const taskInput = document.getElementById('task-input');
-    const taskList = document.getElementById('task-list');
-    const addTaskBtn = document.getElementById('add-task-btn');
-    const errorContainer = document.getElementById('error-container');
+// --- Configuration ---
+const TASK_STORAGE_KEY = 'todolyfy-tasks';
 
-    // Load tasks from localStorage when the page opens
-    loadTasks();
+// --- Global State ---
+let tasks = [];
 
-    // --- EVENT LISTENERS ---
+// --- DOM Elements ---
+const taskForm = document.getElementById('task-form');
+const taskInput = document.getElementById('task-input');
+const taskListEl = document.getElementById('task-list');
 
-    // Handle form submission to add a new main task
-    taskForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const taskText = taskInput.value.trim();
-        if (!taskText) return;
+// --- State Management ---
+function loadState() {
+  try {
+    const storedTasks = localStorage.getItem(TASK_STORAGE_KEY);
+    if (storedTasks) {
+      tasks = JSON.parse(storedTasks);
+      tasks.forEach(task => {
+          task.isGenerating = false;
+          if (task.isOpen === undefined) task.isOpen = true;
+          if (task.notes === undefined) task.notes = '';
+      });
+    }
+  } catch (error) {
+    console.error("Failed to load tasks from localStorage", error);
+    tasks = [];
+  }
+}
 
-        setLoadingState(true);
-        hideError();
+function saveTasks() {
+  try {
+    localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
+  } catch (error) {
+    console.error("Failed to save tasks to localStorage", error);
+  }
+}
 
+// --- Rendering ---
+function renderApp() {
+  if (!taskListEl) return;
+  
+  taskListEl.innerHTML = '';
+  tasks.forEach(task => {
+    const taskElement = createTaskElement(task);
+    taskListEl.appendChild(taskElement);
+  });
+
+  initSortable();
+}
+
+function createTaskElement(task) {
+  const taskItem = document.createElement('article');
+  taskItem.id = task.id;
+  taskItem.className = 'task-item';
+  taskItem.setAttribute('data-open', task.isOpen);
+  taskItem.dataset.id = task.id;
+
+  taskItem.innerHTML = `
+    <div class="task-header">
+        <div class="task-header-main">
+            <h2>${task.text}</h2>
+            <div class="task-due-date">${task.dueDate ? `Due: ${task.dueDate}` : ''}</div>
+        </div>
+        <button class="delete-btn" aria-label="Delete task">&times;</button>
+    </div>
+    <div class="task-body">
+      ${task.isGenerating ? '<div class="loading-spinner"></div>' : createSubtasksHtml(task)}
+    </div>
+  `;
+  
+  taskItem.querySelector('.task-header').addEventListener('click', (e) => {
+    if (!e.target.closest('button')) handleToggleAccordion(task.id);
+  });
+  taskItem.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
+  taskItem.querySelector('.regenerate-btn')?.addEventListener('click', () => handleRegenerateSubtasks(task.id, task.text));
+  taskItem.querySelector('.main-due-date')?.addEventListener('change', (e) => handleSetDueDate(task.id, e.target.value));
+  taskItem.querySelector('.task-notes-textarea')?.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
+  
+  // Add event listeners for subtask checkboxes
+  taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
+      const subtaskId = subtaskEl.dataset.subtaskId;
+      if (!subtaskId) return;
+      
+      const checkbox = subtaskEl.querySelector('input[type="checkbox"]');
+      if(checkbox) {
+          checkbox.addEventListener('change', () => handleToggleSubtask(task.id, subtaskId));
+      }
+  });
+
+  return taskItem;
+}
+
+function createSubtasksHtml(task) {
+    const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+    return `
+    <div class="task-toolbar">
+        <div class="due-date-picker">
+            <label for="main-due-${task.id}">Set Task Due Date:</label>
+            <input type="date" class="main-due-date" id="main-due-${task.id}" value="${task.dueDate || ''}">
+        </div>
+        ${hasSubtasks ? '<button class="regenerate-btn">Regenerate</button>' : ''}
+    </div>
+    ${hasSubtasks ? `
+    <ul class="subtask-list" data-task-id="${task.id}">
+      ${task.subtasks.map(subtask => `
+        <li class="subtask-item ${subtask.completed ? 'completed' : ''}" data-subtask-id="${subtask.id}">
+          <input type="checkbox" id="${subtask.id}" ${subtask.completed ? 'checked' : ''} />
+          <span class="task-text">${subtask.text}</span>
+        </li>
+      `).join('')}
+    </ul>` : ''}
+    <div class="task-notes">
+        <textarea class="task-notes-textarea" placeholder="Add notes...">${task.notes || ''}</textarea>
+    </div>
+  `;
+}
+
+// --- Drag and Drop ---
+function initSortable() {
+    if (taskListEl) {
+        new Sortable(taskListEl, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            onEnd: () => {
+                const newTasks = Array.from(taskListEl.children).map(item => {
+                    return tasks.find(t => t.id === item.dataset.id);
+                }).filter(Boolean);
+                tasks = newTasks;
+                saveTasks();
+            }
+        });
+    }
+}
+
+// --- Event Handlers & Logic ---
+async function handleFormSubmit(e) {
+  e.preventDefault();
+  const taskText = taskInput.value.trim();
+  if (!taskText) return;
+
+  // CORRECTED: Find the button within the form, which is more reliable
+  const addTaskBtn = taskForm.querySelector('button');
+  taskInput.disabled = true;
+  addTaskBtn.disabled = true;
+  addTaskBtn.textContent = 'Generating...';
+
+  const newTask = {
+    id: `task-${Date.now()}`,
+    text: taskText,
+    subtasks: [],
+    isGenerating: true,
+    isOpen: true,
+    dueDate: null,
+    notes: '',
+  };
+
+  tasks.unshift(newTask);
+  renderApp(); 
+
+  try {
+    const generatedSubtasks = await generateSubtasksForTask(taskText);
+    const taskToUpdate = tasks.find(t => t.id === newTask.id);
+    if (taskToUpdate) {
+        taskToUpdate.subtasks = (generatedSubtasks || []).map((text, i) => ({
+            id: `${newTask.id}-subtask-${Date.now()}-${i}`,
+            text,
+            completed: false
+        }));
+    }
+  } catch(error) {
+    console.error('Error generating subtasks:', error);
+    alert(`An error occurred: ${error.message}`);
+    tasks = tasks.filter(t => t.id !== newTask.id);
+  } finally {
+    const taskToUpdate = tasks.find(t => t.id === newTask.id);
+    if (taskToUpdate) {
+        taskToUpdate.isGenerating = false;
+    }
+    saveTasks();
+    renderApp();
+
+    taskInput.value = '';
+    taskInput.disabled = false;
+    addTaskBtn.disabled = false;
+    addTaskBtn.textContent = 'Add Task';
+    taskInput.focus();
+  }
+}
+
+async function generateSubtasksForTask(taskText) {
+    const response = await fetch('/api/generate-subtasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskText }),
+    });
+
+    const responseText = await response.text();
+    if (!response.ok) {
+        let errorMessage = 'The server returned an error.';
         try {
-            const response = await fetch('/api/generate-subtasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ taskText }),
-            });
-
-            if (!response.ok) {
-                throw new Error('The server failed to generate subtasks.');
-            }
-
-            const subtasks = await response.json();
-            createMainTask(taskText, subtasks);
-            taskInput.value = '';
-            saveTasks(); // Save after adding a new task
-
-        } catch (error) {
-            console.error('Error generating subtasks:', error);
-            showError('An error occurred. Please check the function logs.');
-        } finally {
-            setLoadingState(false);
+            const errorData = JSON.parse(responseText);
+            if (errorData.error) errorMessage = errorData.error;
+        } catch (e) {
+            if (responseText) errorMessage = responseText;
         }
-    });
-
-    // Use event delegation for all actions on the task list
-    taskList.addEventListener('click', (event) => {
-        const target = event.target;
-        
-        // Handle checkbox clicks
-        if (target.matches('.task-checkbox')) {
-            const taskElement = target.closest('.task-item, .subtask-item');
-            taskElement.classList.toggle('done');
-            saveTasks(); // Save after toggling done state
-        }
-
-        // Handle delete button clicks
-        if (target.matches('.delete-btn, .delete-btn *')) {
-            const taskElement = target.closest('.task-item, .subtask-item');
-            taskElement.remove();
-            saveTasks(); // Save after deleting
-        }
-
-        // Handle edit button clicks
-        if (target.matches('.edit-btn, .edit-btn *')) {
-            const taskElement = target.closest('.task-item, .subtask-item');
-            toggleEditMode(taskElement);
-        }
-    });
-
-    // --- UI CREATION FUNCTIONS ---
-
-    // Creates a complete main task with its subtasks
-    function createMainTask(mainTaskText, subtasks, isDone = false) {
-        const li = document.createElement('li');
-        li.className = 'task-item';
-        if (isDone) li.classList.add('done');
-
-        const mainTaskContent = createTaskContent(mainTaskText, isDone);
-        li.appendChild(mainTaskContent);
-        
-        if (subtasks && subtasks.length > 0) {
-            const subtaskList = document.createElement('ul');
-            subtaskList.className = 'subtask-list';
-            subtasks.forEach(subtask => {
-                // --- FIX STARTS HERE ---
-                // This handles both strings (from AI) and objects (from localStorage)
-                const isSubtaskObject = typeof subtask === 'object' && subtask !== null;
-                const subtaskText = isSubtaskObject ? subtask.text : subtask;
-                const subtaskIsDone = isSubtaskObject ? subtask.isDone : false;
-
-                const subtaskLi = document.createElement('li');
-                subtaskLi.className = 'subtask-item';
-                if (subtaskIsDone) subtaskLi.classList.add('done');
-
-                const subtaskContent = createTaskContent(subtaskText, subtaskIsDone);
-                subtaskLi.appendChild(subtaskContent);
-                subtaskList.appendChild(subtaskLi);
-                // --- FIX ENDS HERE ---
-            });
-            li.appendChild(subtaskList);
-        }
-        
-        taskList.prepend(li);
+        throw new Error(errorMessage);
     }
+    const { subtasks } = JSON.parse(responseText);
+    return subtasks || [];
+}
 
-    // Creates the inner HTML for any task or subtask
-    function createTaskContent(text, isChecked) {
-        const fragment = document.createDocumentFragment();
+async function handleRegenerateSubtasks(taskId, taskText) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'task-checkbox';
-        checkbox.checked = isChecked;
-        fragment.appendChild(checkbox);
+    task.isGenerating = true;
+    renderApp();
 
-        const textSpan = document.createElement('span');
-        textSpan.className = 'task-text';
-        textSpan.textContent = text;
-        fragment.appendChild(textSpan);
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'task-actions';
-        actionsDiv.innerHTML = `
-            <button class="action-btn edit-btn" aria-label="Edit task">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </button>
-            <button class="action-btn delete-btn" aria-label="Delete task">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
-        `;
-        fragment.appendChild(actionsDiv);
-
-        return fragment;
+    try {
+        const regeneratedSubtasks = await generateSubtasksForTask(taskText);
+        task.subtasks = (regeneratedSubtasks || []).map((text, i) => ({
+            id: `${taskId}-subtask-${Date.now()}-${i}`,
+            text,
+            completed: false
+        }));
+    } catch(error) {
+        console.error('Error regenerating subtasks:', error);
+        alert(`Failed to regenerate subtasks: ${error.message}`);
+    } finally {
+        task.isGenerating = false;
+        saveTasks();
+        renderApp();
     }
+}
 
-    // --- EDIT MODE LOGIC ---
-
-    function toggleEditMode(taskElement) {
-        const textSpan = taskElement.querySelector('.task-text');
-        const currentText = textSpan.textContent;
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = currentText;
-        input.className = 'task-text'; // Reuse style
-        
-        textSpan.replaceWith(input);
-        input.focus();
-
-        const saveChanges = () => {
-            const newText = input.value.trim();
-            textSpan.textContent = newText || currentText;
-            input.replaceWith(textSpan);
-            saveTasks(); // Save after editing
-        };
-        
-        input.addEventListener('blur', saveChanges);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                saveChanges();
-            }
-        });
+function handleToggleAccordion(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        task.isOpen = !task.isOpen;
+        saveTasks();
+        renderApp();
     }
+}
 
-    // --- DATA PERSISTENCE FUNCTIONS ---
-    function saveTasks() {
-        const tasks = [];
-        document.querySelectorAll('#task-list > .task-item').forEach(li => {
-            const mainTaskText = li.querySelector('.task-text').textContent;
-            const mainTaskDone = li.classList.contains('done');
-            const subtasks = [];
-            li.querySelectorAll('.subtask-item').forEach(subLi => {
-                subtasks.push({
-                    text: subLi.querySelector('.task-text').textContent,
-                    isDone: subLi.classList.contains('done')
-                });
-            });
-            tasks.push({ text: mainTaskText, isDone: mainTaskDone, subtasks });
-        });
-        localStorage.setItem('todolyfyTasks', JSON.stringify(tasks));
+function handleSetDueDate(taskId, date) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        task.dueDate = date;
+        saveTasks();
+        renderApp();
     }
+}
 
-    function loadTasks() {
-        const tasksJSON = localStorage.getItem('todolyfyTasks');
-        if (tasksJSON) {
-            const tasks = JSON.parse(tasksJSON);
-            taskList.innerHTML = '';
-            // Load tasks in reverse so they appear in the correct order (newest first)
-            tasks.reverse().forEach(task => {
-                createMainTask(task.text, task.subtasks, task.isDone);
-            });
-        }
+function handleSetNotes(taskId, notes) {
+    const task = tasks.find(t => t.id === taskId);
+    if(task) {
+        task.notes = notes;
+        saveTasks();
     }
+}
 
-    // --- UTILITY FUNCTIONS ---
-    
-    function setLoadingState(isLoading) {
-        if (addTaskBtn) {
-            addTaskBtn.disabled = isLoading;
-            addTaskBtn.textContent = isLoading ? 'Generating...' : 'Add Task';
-        }
-    }
+function handleDeleteTask(taskId) {
+  tasks = tasks.filter(task => task.id !== taskId);
+  saveTasks();
+  renderApp();
+}
 
-    function showError(message) {
-        if(errorContainer) {
-            errorContainer.textContent = message;
-            errorContainer.style.display = 'block';
-        }
+function handleToggleSubtask(taskId, subtaskId) {
+    const task = tasks.find(t => t.id === taskId);
+    const subtask = task?.subtasks.find(st => st.id === subtaskId);
+    if(subtask) {
+        subtask.completed = !subtask.completed;
+        saveTasks();
+        renderApp();
     }
+}
 
-    function hideError() {
-        if(errorContainer) {
-            errorContainer.style.display = 'none';
-        }
-    }
-
-    function escapeHTML(str) {
-        const p = document.createElement('p');
-        p.appendChild(document.createTextNode(str));
-        return p.innerHTML;
-    }
+// --- Initial Load ---
+document.addEventListener('DOMContentLoaded', () => {
+  if (taskForm) taskForm.addEventListener('submit', handleFormSubmit);
+  loadState();
+  renderApp();
 });
