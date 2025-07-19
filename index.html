@@ -26,14 +26,16 @@
         </header>
 
         <div id="auth-section">
-            <button id="google-login-btn" style="display:flex;align-items:center;justify-content:center;background:#fff;color:#3c4043;padding:0.75rem 1.5rem;border:1px solid #dadce0;border-radius:4px;font-size:1rem;cursor:pointer;box-shadow:0 1px 2px rgba(60,64,67,.08);font-family:Roboto,Arial,sans-serif;min-width:240px;">
-                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width:20px;height:20px;margin-right:12px;vertical-align:middle;">
-                <span style="font-weight:500;">Sign in with Google</span>
-            </button>
-            <button id="apple-login-btn" style="display:flex;align-items:center;justify-content:center;background:#000;color:#fff;padding:0.75rem 1.5rem;border:none;border-radius:4px;font-size:1rem;cursor:pointer;min-width:240px;margin-top:8px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo" style="width:20px;height:20px;margin-right:12px;vertical-align:middle;">
-                <span style="font-weight:500;">Sign in with Apple</span>
-            </button>
+            <div style="display:flex;gap:12px;">
+                <button id="apple-login-btn" style="display:flex;align-items:center;justify-content:center;background:#000;color:#fff;padding:0.75rem 1.5rem;border:none;border-radius:4px;font-size:1rem;cursor:pointer;min-width:240px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple logo" style="width:20px;height:20px;margin-right:12px;vertical-align:middle;">
+                    <span style="font-weight:500;">Sign in with Apple</span>
+                </button>
+                <button id="google-login-btn" style="display:flex;align-items:center;justify-content:center;background:#fff;color:#3c4043;padding:0.75rem 1.5rem;border:1px solid #dadce0;border-radius:4px;font-size:1rem;cursor:pointer;box-shadow:0 1px 2px rgba(60,64,67,.08);font-family:Roboto,Arial,sans-serif;min-width:240px;">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width:20px;height:20px;margin-right:12px;vertical-align:middle;">
+                    <span style="font-weight:500;">Sign in with Google</span>
+                </button>
+            </div>
             <div id="user-info" style="margin-top:1rem;"></div>
         </div>
         <form id="task-form" class="task-form">
