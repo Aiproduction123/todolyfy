@@ -188,17 +188,50 @@ body {
     max-height: 1000px;
 }
 
-/* === TRELLO-STYLE NOTES SECTION === */
-
+/* === NEW TRELLO-STYLE NOTES SECTION === */
 .task-notes {
-    position: relative;
     margin-top: 0.75rem;
 }
 
-.task-notes textarea {
+/* 1. View Mode (Default) */
+.notes-display {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-height: 40px;
+    box-sizing: border-box;
+    white-space: pre-wrap; /* Respects line breaks */
+    word-wrap: break-word; /* Prevents overflow */
+}
+
+.notes-display:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.notes-display.is-empty {
+    color: var(--subtle-text);
+}
+
+/* Hide View mode when editing */
+.task-notes.is-editing .notes-display {
+    display: none;
+}
+
+/* 2. Edit Mode */
+.notes-editor {
+    display: none; /* Hidden by default */
+}
+
+/* Show Edit mode when editing */
+.task-notes.is-editing .notes-editor {
+    display: block;
+}
+
+.notes-editor textarea {
     width: 100%;
-    min-height: 48px;
-    padding: 0.85rem 5rem 0.85rem 1rem; /* Padding for the button */
+    min-height: 80px;
+    padding: 0.75rem 1rem;
     border-radius: 8px;
     border: 1px solid var(--border-color);
     font-family: inherit;
@@ -206,71 +239,58 @@ body {
     resize: none;
     background-color: var(--background-color);
     color: var(--text-color);
-    overflow-y: hidden;
     box-sizing: border-box;
     transition: all 0.2s ease-in-out;
 }
 
-.task-notes textarea:focus {
+.notes-editor textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
 }
 
-.task-notes textarea::placeholder {
-    color: var(--subtle-text);
-}
-
-.save-notes-btn {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    height: 32px;
-    width: auto; /* Auto-width for flexible content */
-    padding: 0 0.8rem; /* Horizontal padding */
-    background-color: var(--primary-color);
-    border: none;
-    border-radius: 6px;
-    color: white;
-    cursor: pointer;
+.notes-editor-actions {
+    margin-top: 0.5rem;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: 0.5rem;
+}
+
+.notes-editor-actions .save-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 0.9rem;
     font-weight: 600;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-50%) scale(0.95);
-    transition: all 0.2s ease;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-/* Show button when textarea is focused or has content */
-.task-notes:focus-within .save-notes-btn,
-.task-notes textarea:not(:placeholder-shown) + .save-notes-btn {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(-50%) scale(1);
-}
-
-.save-notes-btn:hover:not(.saved) {
+.notes-editor-actions .save-btn:hover {
     background-color: var(--primary-hover);
 }
 
-.save-notes-btn svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    stroke-width: 2.5;
+.notes-editor-actions .cancel-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: transparent;
+    color: var(--subtle-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-/* Style for after the save is successful */
-.save-notes-btn.saved {
-    background-color: var(--success-color);
-    cursor: default;
+.notes-editor-actions .cancel-btn:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    color: var(--text-color);
 }
+
 
 /* === END OF NOTES SECTION === */
+
 
 .subtask-list {
     list-style: none;

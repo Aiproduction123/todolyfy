@@ -22,6 +22,8 @@ function loadState() {
           if (task.isOpen === undefined) task.isOpen = true;
           if (task.notes === undefined) task.notes = '';
           if (task.completed === undefined) task.completed = false;
+          // Add a new property to track editing state, default to false
+          task.isEditingNotes = false; 
       });
     }
   } catch (error) {
@@ -32,6 +34,8 @@ function loadState() {
 
 function saveTasks() {
   try {
+    // Before saving, ensure all tasks are not in edit mode
+    tasks.forEach(task => task.isEditingNotes = false);
     localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
   } catch (error) {
     console.error("Failed to save tasks to localStorage", error);
@@ -48,11 +52,26 @@ function renderApp() {
       return true;
   });
 
+  // Preserve focus and scroll position
+  const activeElementId = document.activeElement?.id;
+  const scrollPosition = window.scrollY;
+
   taskListEl.innerHTML = '';
   tasksToRender.forEach(task => {
     const taskElement = createTaskElement(task);
     taskListEl.appendChild(taskElement);
   });
+
+  // Restore focus if possible
+  if (activeElementId) {
+      const elementToFocus = document.getElementById(activeElementId);
+      if (elementToFocus && elementToFocus.tagName === 'TEXTAREA') {
+          elementToFocus.focus();
+          elementToFocus.select();
+      }
+  }
+  window.scrollTo(0, scrollPosition);
+
 
   updateActiveTab();
   initSortable();
@@ -96,12 +115,18 @@ function createTaskElement(task) {
   
   taskItem.querySelector('.task-header .task-checkbox').addEventListener('change', () => handleToggleTask(task.id));
 
-  const notesTextarea = taskItem.querySelector('.task-notes-textarea');
-  const saveNotesBtn = taskItem.querySelector('.save-notes-btn');
-  if (notesTextarea && saveNotesBtn) {
-      notesTextarea.addEventListener('input', autoResizeTextarea);
-      saveNotesBtn.addEventListener('click', () => handleSaveNotes(task.id));
-      autoResizeTextarea({ target: notesTextarea });
+  // --- NEW NOTES EVENT LISTENERS ---
+  const notesContainer = taskItem.querySelector('.task-notes');
+  if(notesContainer) {
+      notesContainer.querySelector('.notes-display')?.addEventListener('click', () => handleEnterNotesEditMode(task.id));
+      notesContainer.querySelector('.notes-editor .save-btn')?.addEventListener('click', () => handleSaveNotes(task.id));
+      notesContainer.querySelector('.notes-editor .cancel-btn')?.addEventListener('click', () => handleCancelNotesEdit(task.id));
+      const textarea = notesContainer.querySelector('textarea');
+      if (textarea) {
+          textarea.addEventListener('input', autoResizeTextarea);
+          // Initial resize
+          autoResizeTextarea({ target: textarea });
+      }
   }
   
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
@@ -116,9 +141,11 @@ function createTaskElement(task) {
   return taskItem;
 }
 
+// --- COMPLETELY REWRITTEN createSubtasksHtml FUNCTION ---
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
-    
+    const hasNotes = task.notes && task.notes.trim() !== '';
+
     return `
     ${hasSubtasks ? `
     <ul class="subtask-list" data-task-id="${task.id}">
@@ -139,16 +166,22 @@ function createSubtasksHtml(task) {
         </li>
       `).join('')}
     </ul>` : '<p class="no-subtasks-message">No subtasks were generated for this task.</p>'}
-    <div class="task-notes">
-        <textarea class="task-notes-textarea" placeholder="Add notes..." rows="1">${task.notes || ''}</textarea>
-        <button class="save-notes-btn" aria-label="Save notes">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-            </svg>
-            Save
-        </button>
+    
+    <!-- NEW TRELLO-STYLE NOTES STRUCTURE -->
+    <div class="task-notes ${task.isEditingNotes ? 'is-editing' : ''}">
+        <!-- View Mode -->
+        <div class="notes-display ${hasNotes ? '' : 'is-empty'}">
+            ${hasNotes ? task.notes : 'Add a more detailed description...'}
+        </div>
+
+        <!-- Edit Mode -->
+        <div class="notes-editor">
+            <textarea id="notes-textarea-${task.id}" placeholder="Add notes..." rows="1">${task.notes || ''}</textarea>
+            <div class="notes-editor-actions">
+                <button class="save-btn">Save</button>
+                <button class="cancel-btn">Cancel</button>
+            </div>
+        </div>
     </div>
   `;
 }
@@ -191,6 +224,7 @@ async function handleFormSubmit(e) {
     isGenerating: true,
     isOpen: true,
     notes: '',
+    isEditingNotes: false, // Default state
   };
 
   tasks.unshift(newTask);
@@ -264,50 +298,35 @@ function handleToggleAccordion(taskId) {
     }
 }
 
-// === TRELLO-STYLE handleSaveNotes FUNCTION ===
-function handleSaveNotes(taskId) {
-    const taskElement = document.getElementById(taskId);
-    if (!taskElement) return;
-
-    const saveBtn = taskElement.querySelector('.save-notes-btn');
-    const textarea = taskElement.querySelector('.task-notes-textarea');
-
-    if (!saveBtn || !textarea) return;
-
+// --- NEW NOTES HANDLER FUNCTIONS ---
+function handleEnterNotesEditMode(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-        // 1. Save the data
-        task.notes = textarea.value;
-        saveTasks();
-
-        // 2. Blur the textarea to exit "edit mode"
-        textarea.blur();
-
-        // 3. Add .saved class, disable button, and change text
-        saveBtn.classList.add('saved');
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Saved
-        `;
-
-        // 4. Set timer to revert button to its normal state
-        setTimeout(() => {
-            saveBtn.classList.remove('saved');
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                    <polyline points="17 21 17 13 7 13 7 21"/>
-                    <polyline points="7 3 7 8 15 8"/>
-                </svg>
-                Save
-            `;
-        }, 2000); // 2 seconds
+        task.isEditingNotes = true;
+        renderApp(); // Re-render to show the editor
     }
 }
+
+function handleSaveNotes(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    const taskElement = document.getElementById(taskId);
+    if (task && taskElement) {
+        const textarea = taskElement.querySelector(`#notes-textarea-${taskId}`);
+        task.notes = textarea.value;
+        task.isEditingNotes = false; // Exit edit mode
+        saveTasks();
+        renderApp();
+    }
+}
+
+function handleCancelNotesEdit(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        task.isEditingNotes = false; // Just exit edit mode, don't save
+        renderApp();
+    }
+}
+
 
 function handleDeleteTask(taskId) {
   tasks = tasks.filter(task => task.id !== taskId);
