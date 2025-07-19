@@ -11,7 +11,10 @@ exports.handler = async function(event, context) {
   const url = `https://appleid.apple.com/auth/authorize?${querystring.stringify(params)}`;
   return {
     statusCode: 302,
-    headers: { Location: url },
+    headers: {
+      Location: url,
+      'Cache-Control': 'no-cache',
+    },
     body: ''
   };
 };
