@@ -11,7 +11,6 @@
     --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     --drag-ghost-color: rgba(108, 92, 231, 0.2);
     --success-color: #28a745;
-    --success-glow: rgba(40, 167, 69, 0.25); /* NEW: Glow for saved state */
 }
 
 body {
@@ -189,7 +188,7 @@ body {
     max-height: 1000px;
 }
 
-/* === NOTES SECTION WITH SAVED STATE === */
+/* === TRELLO-STYLE NOTES SECTION === */
 
 .task-notes {
     position: relative;
@@ -199,7 +198,7 @@ body {
 .task-notes textarea {
     width: 100%;
     min-height: 48px;
-    padding: 0.85rem 4.5rem 0.85rem 1rem; /* More padding for wider button */
+    padding: 0.85rem 5rem 0.85rem 1rem; /* Padding for the button */
     border-radius: 8px;
     border: 1px solid var(--border-color);
     font-family: inherit;
@@ -218,12 +217,6 @@ body {
     box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
 }
 
-/* NEW: Style for the saved state */
-.task-notes.notes-saved textarea {
-    border-color: var(--success-color);
-    box-shadow: 0 0 0 3px var(--success-glow);
-}
-
 .task-notes textarea::placeholder {
     color: var(--subtle-text);
 }
@@ -233,7 +226,8 @@ body {
     right: 8px;
     top: 50%;
     height: 32px;
-    width: 60px; /* Default width for "Save" */
+    width: auto; /* Auto-width for flexible content */
+    padding: 0 0.8rem; /* Horizontal padding */
     background-color: var(--primary-color);
     border: none;
     border-radius: 6px;
@@ -248,9 +242,10 @@ body {
     opacity: 0;
     visibility: hidden;
     transform: translateY(-50%) scale(0.95);
-    transition: all 0.2s ease; /* Animate all properties */
+    transition: all 0.2s ease;
 }
 
+/* Show button when textarea is focused or has content */
 .task-notes:focus-within .save-notes-btn,
 .task-notes textarea:not(:placeholder-shown) + .save-notes-btn {
     opacity: 1;
@@ -258,7 +253,7 @@ body {
     transform: translateY(-50%) scale(1);
 }
 
-.save-notes-btn:hover {
+.save-notes-btn:hover:not(.saved) {
     background-color: var(--primary-hover);
 }
 
@@ -269,15 +264,13 @@ body {
     stroke-width: 2.5;
 }
 
-/* MODIFIED: Style for after the save is successful */
+/* Style for after the save is successful */
 .save-notes-btn.saved {
     background-color: var(--success-color);
-    width: 75px; /* Wider to fit "Saved!" */
     cursor: default;
 }
 
 /* === END OF NOTES SECTION === */
-
 
 .subtask-list {
     list-style: none;

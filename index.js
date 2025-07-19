@@ -264,43 +264,39 @@ function handleToggleAccordion(taskId) {
     }
 }
 
-// === NEW AND IMPROVED handleSaveNotes FUNCTION ===
+// === TRELLO-STYLE handleSaveNotes FUNCTION ===
 function handleSaveNotes(taskId) {
     const taskElement = document.getElementById(taskId);
     if (!taskElement) return;
 
     const saveBtn = taskElement.querySelector('.save-notes-btn');
     const textarea = taskElement.querySelector('.task-notes-textarea');
-    const notesContainer = taskElement.querySelector('.task-notes');
 
-    if (!saveBtn || !textarea || !notesContainer) return;
+    if (!saveBtn || !textarea) return;
 
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-        // 1. Save the actual data from the textarea
+        // 1. Save the data
         task.notes = textarea.value;
         saveTasks();
 
-        // 2. Add CSS classes to trigger the "saved" visual state
-        notesContainer.classList.add('notes-saved');
+        // 2. Blur the textarea to exit "edit mode"
+        textarea.blur();
+
+        // 3. Add .saved class, disable button, and change text
         saveBtn.classList.add('saved');
         saveBtn.disabled = true;
-
-        // 3. Change button content to "Saved!" with a checkmark icon
         saveBtn.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            Saved!
+            Saved
         `;
 
-        // 4. Set a timer to revert the button and styles back to normal after 2 seconds
+        // 4. Set timer to revert button to its normal state
         setTimeout(() => {
-            notesContainer.classList.remove('notes-saved');
             saveBtn.classList.remove('saved');
             saveBtn.disabled = false;
-
-            // 5. Restore the original "Save" button content
             saveBtn.innerHTML = `
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
@@ -309,7 +305,7 @@ function handleSaveNotes(taskId) {
                 </svg>
                 Save
             `;
-        }, 2000); // 2000 milliseconds = 2 seconds
+        }, 2000); // 2 seconds
     }
 }
 
