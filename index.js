@@ -58,7 +58,6 @@ function createTaskElement(task) {
   taskItem.setAttribute('data-open', task.isOpen);
   taskItem.dataset.id = task.id;
 
-  // UPDATED: Main task now has the same edit/delete icons as subtasks
   taskItem.innerHTML = `
     <div class="task-header">
         <div class="task-header-main">
@@ -82,12 +81,17 @@ function createTaskElement(task) {
     if (!e.target.closest('button')) handleToggleAccordion(task.id);
   });
   
-  // UPDATED: Event listeners for the new main task actions
   const taskActions = taskItem.querySelector('.task-header .task-actions');
   taskActions.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
   taskActions.querySelector('.edit-btn').addEventListener('click', (e) => handleEditTask(e.currentTarget, task.id));
 
-  taskItem.querySelector('.task-notes-textarea')?.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
+  // UPDATED: Add listener for auto-expanding textarea
+  const notesTextarea = taskItem.querySelector('.task-notes-textarea');
+  if (notesTextarea) {
+      notesTextarea.addEventListener('input', autoResizeTextarea);
+      notesTextarea.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
+      autoResizeTextarea({ target: notesTextarea }); // Set initial size
+  }
   
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
       const subtaskId = subtaskEl.dataset.subtaskId;
@@ -104,6 +108,7 @@ function createTaskElement(task) {
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
     
+    // UPDATED: Subtasks now have the same modern SVG icons
     return `
     ${hasSubtasks ? `
     <ul class="subtask-list" data-task-id="${task.id}">
@@ -113,7 +118,7 @@ function createSubtasksHtml(task) {
             <input type="checkbox" id="${subtask.id}" ${subtask.completed ? 'checked' : ''} />
             <span class="task-text">${subtask.text}</span>
           </div>
-          <div class="subtask-actions">
+          <div class="task-actions">
             <button class="edit-btn" aria-label="Edit subtask">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             </button>
@@ -125,7 +130,7 @@ function createSubtasksHtml(task) {
       `).join('')}
     </ul>` : '<p class="no-subtasks-message">No subtasks were generated for this task.</p>'}
     <div class="task-notes">
-        <textarea class="task-notes-textarea" placeholder="Add notes...">${task.notes || ''}</textarea>
+        <textarea class="task-notes-textarea" placeholder="Add notes..." rows="1">${task.notes || ''}</textarea>
     </div>
   `;
 }
@@ -271,7 +276,6 @@ function handleDeleteSubtask(taskId, subtaskId) {
   }
 }
 
-// ADDED: Function to edit the main task title
 function handleEditTask(editBtn, taskId) {
   const taskHeader = editBtn.closest('.task-header');
   const headerMain = taskHeader.querySelector('.task-header-main');
@@ -295,7 +299,7 @@ function handleEditTask(editBtn, taskId) {
     const editInput = document.createElement('input');
     editInput.type = 'text';
     editInput.value = currentText;
-    editInput.className = 'edit-input main-task-edit'; // Special class for main task input
+    editInput.className = 'edit-input main-task-edit';
     
     headerMain.replaceChild(editInput, h2);
     
@@ -309,7 +313,7 @@ function handleEditTask(editBtn, taskId) {
         }
     };
     editInput.addEventListener('keydown', saveOnKey);
-    editInput.addEventListener('blur', () => editBtn.click()); // Save when focus is lost
+    editInput.addEventListener('blur', () => editBtn.click());
   }
 }
 
@@ -353,6 +357,13 @@ function handleEditSubtask(editBtn, taskId, subtaskId) {
     editInput.addEventListener('keydown', saveOnKey);
     editInput.addEventListener('blur', () => editBtn.click());
   }
+}
+
+// ADDED: Helper function to auto-resize textarea
+function autoResizeTextarea(event) {
+    const textarea = event.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
 }
 
 // --- Initial Load ---

@@ -114,7 +114,7 @@ body {
     background-color: var(--container-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    margin-bottom: 0.25rem; /* UPDATED: Greatly reduced margin */
+    margin-bottom: 0.25rem; /* Greatly reduced margin */
     overflow: hidden;
 }
 
@@ -122,7 +122,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 1rem; /* UPDATED: Greatly reduced padding */
+    padding: 0.5rem 1rem; /* Greatly reduced padding */
     cursor: pointer;
     user-select: none;
 }
@@ -132,47 +132,49 @@ body {
 }
 
 .task-header h2 {
-    font-size: 1rem; /* UPDATED: Smaller font size */
+    font-size: 1rem; /* Smaller font size */
     font-weight: 500;
 }
 
 .task-body {
     border-top: 1px solid var(--border-color);
-    padding: 0 1rem; /* UPDATED: Reduced padding */
+    padding: 0 1rem; /* Reduced padding */
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out, padding 0.3s ease-out;
 }
 
 .task-item[data-open="true"] .task-body {
-    padding: 0.75rem 1rem; /* UPDATED: Reduced padding when open */
+    padding: 0.5rem 1rem; /* Reduced padding when open */
     max-height: 1000px;
 }
 
+/* UPDATED: Styles for auto-expanding textarea */
 .task-notes textarea {
     width: 100%;
-    min-height: 60px; /* UPDATED: Reduced height */
     padding: 0.5rem;
     border-radius: 6px;
     border: 1px solid var(--border-color);
     font-family: inherit;
-    font-size: 0.9rem; /* UPDATED: Smaller font size */
-    resize: vertical;
-    margin-top: 0.75rem; /* UPDATED: Reduced margin */
+    font-size: 0.9rem;
+    resize: none; /* Disable manual resize handle */
+    margin-top: 0.5rem;
     background-color: var(--background-color);
     color: var(--text-color);
+    overflow-y: hidden; /* Hide scrollbar */
 }
 
 .subtask-list {
     list-style: none;
     padding: 0;
+    margin-top: 0.5rem;
 }
 
 .subtask-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.25rem 0; /* UPDATED: Greatly reduced padding */
+    padding: 0.15rem 0; /* Greatly reduced padding */
 }
 
 .subtask-content {
@@ -189,12 +191,12 @@ body {
 
 .task-text {
     flex-grow: 1;
-    font-size: 0.95rem; /* UPDATED: Smaller font size */
+    font-size: 0.95rem; /* Smaller font size */
 }
 
 .no-subtasks-message {
     color: var(--subtle-text);
-    padding: 0.75rem 0; /* UPDATED: Reduced padding */
+    padding: 0.5rem 0; /* Reduced padding */
     text-align: center;
     font-style: italic;
     font-size: 0.9rem;
@@ -218,7 +220,7 @@ body {
 }
 
 .task-actions button svg {
-    width: 16px; /* UPDATED: Smaller icons */
+    width: 16px; /* Smaller icons */
     height: 16px;
     stroke: currentColor;
 }
@@ -240,7 +242,7 @@ body {
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    font-size: 0.95rem; /* UPDATED: Smaller font size */
+    font-size: 0.95rem;
     font-family: inherit;
     line-height: 1.5;
     background-color: var(--background-color);
@@ -248,7 +250,7 @@ body {
 }
 
 .edit-input.main-task-edit {
-    font-size: 1rem; /* UPDATED: Smaller font size */
+    font-size: 1rem;
     font-weight: 500;
 }
 
