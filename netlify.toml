@@ -1,19 +1,9 @@
 # Build configuration
 [build]
-  command = "npm install --prefix=netlify/functions"
+  # This tells Netlify to deploy the files from the root of your repository.
   publish = "."
 
-# Functions configuration
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
-
-# Redirect rule to make /api/* paths work
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-
+# Redirects for clean URLs
 [[redirects]]
   from = "/privacy"
   to = "/privacy.html"
