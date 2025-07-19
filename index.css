@@ -188,45 +188,54 @@ body {
     max-height: 1000px;
 }
 
-/* === REFINED TRELLO-STYLE NOTES SECTION === */
+/* === FINAL TRELLO-STYLE NOTES SECTION === */
 .task-notes {
     margin-top: 0.75rem;
 }
 
 /* 1. View Mode (Default) */
 .notes-display {
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
+    display: flex;
+    align-items: flex-start; /* Aligns icon with the top of the text block */
+    gap: 0.75rem; /* Space between icon and text */
+    padding: 0.5rem; /* Smaller padding for a tighter look */
+    border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    
-    /* --- ADJUSTMENTS FOR ALIGNMENT AND HEIGHT --- */
-    display: flex;
-    align-items: center;
-    min-height: 22px; /* Set a minimum height based on font-size/line-height */
 }
 
 .notes-display:hover {
     background-color: rgba(255, 255, 255, 0.04);
 }
 
-.notes-display.is-empty {
+.notes-icon {
+    width: 18px;
+    height: 18px;
+    stroke: var(--subtle-text);
+    flex-shrink: 0; /* Prevents the icon from shrinking */
+    margin-top: 2px; /* Fine-tune vertical alignment */
+}
+
+.notes-text {
+    color: var(--text-color);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.5; /* Improves readability of multi-line notes */
+}
+
+.notes-display.is-empty .notes-text {
     color: var(--subtle-text);
 }
 
-/* Hide View mode when editing */
 .task-notes.is-editing .notes-display {
     display: none;
 }
 
 /* 2. Edit Mode */
 .notes-editor {
-    display: none; /* Hidden by default */
+    display: none;
 }
 
-/* Show Edit mode when editing */
 .task-notes.is-editing .notes-editor {
     display: block;
 }
@@ -239,6 +248,7 @@ body {
     border: 1px solid var(--border-color);
     font-family: inherit;
     font-size: 0.95rem;
+    line-height: 1.5;
     resize: none;
     background-color: var(--background-color);
     color: var(--text-color);
@@ -283,7 +293,7 @@ body {
     font-weight: 500;
     border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .notes-editor-actions .cancel-btn:hover {
@@ -291,9 +301,7 @@ body {
     color: var(--text-color);
 }
 
-
 /* === END OF NOTES SECTION === */
-
 
 .subtask-list {
     list-style: none;

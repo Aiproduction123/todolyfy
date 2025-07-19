@@ -22,7 +22,6 @@ function loadState() {
           if (task.isOpen === undefined) task.isOpen = true;
           if (task.notes === undefined) task.notes = '';
           if (task.completed === undefined) task.completed = false;
-          // Add a new property to track editing state, default to false
           task.isEditingNotes = false; 
       });
     }
@@ -34,7 +33,6 @@ function loadState() {
 
 function saveTasks() {
   try {
-    // Before saving, ensure all tasks are not in edit mode
     tasks.forEach(task => task.isEditingNotes = false);
     localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
   } catch (error) {
@@ -52,7 +50,6 @@ function renderApp() {
       return true;
   });
 
-  // Preserve focus and scroll position
   const activeElementId = document.activeElement?.id;
   const scrollPosition = window.scrollY;
 
@@ -62,7 +59,6 @@ function renderApp() {
     taskListEl.appendChild(taskElement);
   });
 
-  // Restore focus if possible
   if (activeElementId) {
       const elementToFocus = document.getElementById(activeElementId);
       if (elementToFocus && elementToFocus.tagName === 'TEXTAREA') {
@@ -71,7 +67,6 @@ function renderApp() {
       }
   }
   window.scrollTo(0, scrollPosition);
-
 
   updateActiveTab();
   initSortable();
@@ -115,7 +110,6 @@ function createTaskElement(task) {
   
   taskItem.querySelector('.task-header .task-checkbox').addEventListener('change', () => handleToggleTask(task.id));
 
-  // --- NEW NOTES EVENT LISTENERS ---
   const notesContainer = taskItem.querySelector('.task-notes');
   if(notesContainer) {
       notesContainer.querySelector('.notes-display')?.addEventListener('click', () => handleEnterNotesEditMode(task.id));
@@ -124,7 +118,6 @@ function createTaskElement(task) {
       const textarea = notesContainer.querySelector('textarea');
       if (textarea) {
           textarea.addEventListener('input', autoResizeTextarea);
-          // Initial resize
           autoResizeTextarea({ target: textarea });
       }
   }
@@ -141,7 +134,7 @@ function createTaskElement(task) {
   return taskItem;
 }
 
-// --- COMPLETELY REWRITTEN createSubtasksHtml FUNCTION ---
+// --- REWRITTEN createSubtasksHtml TO INCLUDE ICON AND CORRECT STRUCTURE ---
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
     const hasNotes = task.notes && task.notes.trim() !== '';
@@ -156,27 +149,25 @@ function createSubtasksHtml(task) {
             <span class="task-text">${subtask.text}</span>
           </div>
           <div class="task-actions">
-            <button class="edit-btn" aria-label="Edit subtask">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-            </button>
-            <button class="delete-btn" aria-label="Delete subtask">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-            </button>
+            <button class="edit-btn" aria-label="Edit subtask"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+            <button class="delete-btn" aria-label="Delete subtask"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
           </div>
         </li>
       `).join('')}
     </ul>` : '<p class="no-subtasks-message">No subtasks were generated for this task.</p>'}
     
-    <!-- NEW TRELLO-STYLE NOTES STRUCTURE -->
     <div class="task-notes ${task.isEditingNotes ? 'is-editing' : ''}">
         <!-- View Mode -->
         <div class="notes-display ${hasNotes ? '' : 'is-empty'}">
-            ${hasNotes ? task.notes : 'Add a more detailed description...'}
+            <svg class="notes-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <div class="notes-text">
+                ${hasNotes ? task.notes : 'Add a description...'}
+            </div>
         </div>
 
         <!-- Edit Mode -->
         <div class="notes-editor">
-            <textarea id="notes-textarea-${task.id}" placeholder="Add notes..." rows="1">${task.notes || ''}</textarea>
+            <textarea id="notes-textarea-${task.id}" placeholder="Add a description..." rows="1">${task.notes || ''}</textarea>
             <div class="notes-editor-actions">
                 <button class="save-btn">Save</button>
                 <button class="cancel-btn">Cancel</button>
@@ -194,9 +185,7 @@ function initSortable() {
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
             onEnd: () => {
-                const activeTasks = Array.from(taskListEl.children).map(item => {
-                    return tasks.find(t => t.id === item.dataset.id);
-                }).filter(Boolean);
+                const activeTasks = Array.from(taskListEl.children).map(item => tasks.find(t => t.id === item.dataset.id)).filter(Boolean);
                 const completedTasks = tasks.filter(t => t.completed);
                 tasks = [...activeTasks, ...completedTasks];
                 saveTasks();
@@ -224,7 +213,7 @@ async function handleFormSubmit(e) {
     isGenerating: true,
     isOpen: true,
     notes: '',
-    isEditingNotes: false, // Default state
+    isEditingNotes: false,
   };
 
   tasks.unshift(newTask);
@@ -247,9 +236,7 @@ async function handleFormSubmit(e) {
     tasks = tasks.filter(t => t.id !== newTask.id);
   } finally {
     const taskToUpdate = tasks.find(t => t.id === newTask.id);
-    if (taskToUpdate) {
-        taskToUpdate.isGenerating = false;
-    }
+    if (taskToUpdate) taskToUpdate.isGenerating = false;
     saveTasks();
     renderApp();
 
@@ -298,12 +285,11 @@ function handleToggleAccordion(taskId) {
     }
 }
 
-// --- NEW NOTES HANDLER FUNCTIONS ---
 function handleEnterNotesEditMode(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
         task.isEditingNotes = true;
-        renderApp(); // Re-render to show the editor
+        renderApp();
     }
 }
 
@@ -313,7 +299,7 @@ function handleSaveNotes(taskId) {
     if (task && taskElement) {
         const textarea = taskElement.querySelector(`#notes-textarea-${taskId}`);
         task.notes = textarea.value;
-        task.isEditingNotes = false; // Exit edit mode
+        task.isEditingNotes = false;
         saveTasks();
         renderApp();
     }
@@ -322,11 +308,10 @@ function handleSaveNotes(taskId) {
 function handleCancelNotesEdit(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-        task.isEditingNotes = false; // Just exit edit mode, don't save
+        task.isEditingNotes = false;
         renderApp();
     }
 }
-
 
 function handleDeleteTask(taskId) {
   tasks = tasks.filter(task => task.id !== taskId);
@@ -351,7 +336,7 @@ function handleToggleSubtask(taskId, subtaskId) {
     const subtask = task?.subtasks.find(st => st.id === subtaskId);
     if(subtask) {
         subtask.completed = !subtask.completed;
-        if (task.subtasks.length > 0 && task.subtasks.every(st => st.completed)) {
+        if (task.subtasks.every(st => st.completed)) {
             task.completed = true;
         } else {
             task.completed = false;
@@ -379,9 +364,7 @@ function handleEditTask(editBtn, taskId) {
     const editInput = headerMain.querySelector('.edit-input');
     const newText = editInput.value.trim();
     const task = tasks.find(t => t.id === taskId);
-    if (task && newText) {
-      task.text = newText;
-    }
+    if (task && newText) task.text = newText;
     saveTasks();
     renderApp();
   } else {
@@ -421,9 +404,7 @@ function handleEditSubtask(editBtn, taskId, subtaskId) {
     const newText = editInput.value.trim();
     const task = tasks.find(t => t.id === taskId);
     const subtask = task?.subtasks.find(st => st.id === subtaskId);
-    if (subtask && newText) {
-      subtask.text = newText;
-    }
+    if (subtask && newText) subtask.text = newText;
     saveTasks();
     renderApp();
   } else {
