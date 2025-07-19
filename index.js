@@ -21,7 +21,8 @@ function loadState() {
           if (task.notes === undefined) task.notes = '';
       });
     }
-  } catch (error) {
+  } catch (error)
+{
     console.error("Failed to load tasks from localStorage", error);
     tasks = [];
   }
@@ -55,11 +56,11 @@ function createTaskElement(task) {
   taskItem.setAttribute('data-open', task.isOpen);
   taskItem.dataset.id = task.id;
 
+  // REMOVED: Due date display from this template
   taskItem.innerHTML = `
     <div class="task-header">
         <div class="task-header-main">
             <h2>${task.text}</h2>
-            <div class="task-due-date">${task.dueDate ? `Due: ${task.dueDate}` : ''}</div>
         </div>
         <button class="delete-btn" aria-label="Delete task">&times;</button>
     </div>
@@ -73,10 +74,8 @@ function createTaskElement(task) {
   });
   taskItem.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
   taskItem.querySelector('.regenerate-btn')?.addEventListener('click', () => handleRegenerateSubtasks(task.id, task.text));
-  taskItem.querySelector('.main-due-date')?.addEventListener('change', (e) => handleSetDueDate(task.id, e.target.value));
   taskItem.querySelector('.task-notes-textarea')?.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
   
-  // Add event listeners for subtask checkboxes
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
       const subtaskId = subtaskEl.dataset.subtaskId;
       if (!subtaskId) return;
@@ -92,12 +91,9 @@ function createTaskElement(task) {
 
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+    // REMOVED: Due date picker from the toolbar
     return `
     <div class="task-toolbar">
-        <div class="due-date-picker">
-            <label for="main-due-${task.id}">Set Task Due Date:</label>
-            <input type="date" class="main-due-date" id="main-due-${task.id}" value="${task.dueDate || ''}">
-        </div>
         ${hasSubtasks ? '<button class="regenerate-btn">Regenerate</button>' : ''}
     </div>
     ${hasSubtasks ? `
@@ -139,19 +135,18 @@ async function handleFormSubmit(e) {
   const taskText = taskInput.value.trim();
   if (!taskText) return;
 
-  // CORRECTED: Find the button within the form, which is more reliable
   const addTaskBtn = taskForm.querySelector('button');
   taskInput.disabled = true;
   addTaskBtn.disabled = true;
   addTaskBtn.textContent = 'Generating...';
 
+  // REMOVED: dueDate property from the new task object
   const newTask = {
     id: `task-${Date.now()}`,
     text: taskText,
     subtasks: [],
     isGenerating: true,
     isOpen: true,
-    dueDate: null,
     notes: '',
   };
 
@@ -243,14 +238,7 @@ function handleToggleAccordion(taskId) {
     }
 }
 
-function handleSetDueDate(taskId, date) {
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-        task.dueDate = date;
-        saveTasks();
-        renderApp();
-    }
-}
+// REMOVED: The entire handleSetDueDate function
 
 function handleSetNotes(taskId, notes) {
     const task = tasks.find(t => t.id === taskId);

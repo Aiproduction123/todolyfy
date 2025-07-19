@@ -32,12 +32,12 @@ body {
     border: 1px solid var(--border-color);
 }
 
-/* CORRECTED: Header is now a centered column */
+/* CORRECTED: Header is now a horizontal row */
 .app-header {
     display: flex;
-    flex-direction: column; /* Stacks logo and text vertically */
-    align-items: center;   /* Centers them horizontally */
-    gap: 0.25rem;          /* Adds a small space between logo and text */
+    flex-direction: row; /* Arranges items side-by-side */
+    align-items: center;   /* Vertically aligns them */
+    gap: 1rem;          /* Adds space between logo and text */
     margin-bottom: 2rem;
 }
 
@@ -45,9 +45,9 @@ body {
     stroke: var(--primary-color);
 }
 
-/* CORRECTED: Header text is now centered */
+/* CORRECTED: Header text is aligned to the left */
 .header-text {
-    text-align: center;
+    text-align: left;
 }
 
 .header-text h1 {
@@ -135,12 +135,6 @@ body {
     font-weight: 500;
 }
 
-.task-due-date {
-    font-size: 0.8rem;
-    color: var(--subtle-text);
-    margin-top: 4px;
-}
-
 .delete-btn {
     background: none;
     border: none;
@@ -168,14 +162,9 @@ body {
 
 .task-toolbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end; /* Aligns regenerate button to the right */
     align-items: center;
     margin-bottom: 1rem;
-}
-
-.due-date-picker label {
-    font-size: 0.9rem;
-    margin-right: 0.5rem;
 }
 
 .regenerate-btn {
