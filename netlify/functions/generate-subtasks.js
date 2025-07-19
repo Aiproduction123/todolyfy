@@ -1,75 +1,70 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Use the confirmed gemini-2.5-flash model
 const AI_MODEL_NAME = 'gemini-2.5-flash';
-const API_KEY = process.env.API_KEY;
-
-const genAI = new GoogleGenerativeAI(API_KEY);
 
 exports.handler = async function(event, context) {
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json'
+    };
+
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 200, headers, body: '' };
+    }
+
     if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
+        return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
     try {
-        const { taskText } = JSON.parse(event.body);
-        if (!taskText) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'taskText is required' }) };
+        if (!process.env.API_KEY) {
+            console.error('API_KEY not found in environment variables');
+            return { statusCode: 500, headers, body: JSON.stringify({ error: 'API key not configured on the server.' }) };
         }
 
-        const model = genAI.getGenerativeModel({
-            model: AI_MODEL_NAME,
-            systemInstruction: "You are an expert at breaking down large tasks into smaller, actionable steps.",
-        });
+        const { taskText } = JSON.parse(event.body);
+        if (!taskText) {
+            return { statusCode: 400, headers, body: JSON.stringify({ error: 'taskText is required' }) };
+        }
 
-        const safetySettings = [
-            {
-                category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                threshold: HarmBlockThreshold.BLOCK_NONE,
-            },
-            {
-                category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-                threshold: HarmBlockThreshold.BLOCK_NONE,
-            },
-        ];
-
-        const chat = model.startChat({
-            safetySettings,
-            history: [],
-        });
-
-        // Prompt for multilingual support
-        const prompt = `First, detect the language of the following task. Then, based on its complexity, break it down into 1 to 3 smaller, actionable subtasks in that same language.
-Task: "${taskText}"
-IMPORTANT: Respond with only a valid JSON array of strings, like ["subtask 1", "subtask 2"].`;
-
-        const result = await chat.sendMessage(prompt);
-        const response = result.response;
+        const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+        const model = genAI.getGenerativeModel({ model: AI_MODEL_NAME });
         
-        // Reliably extract JSON from the AI's response
-        const rawText = response.text();
-        const match = rawText.match(/\[.*\]/s);
-        
-        let responseData = []; // Default to an empty array
+        // A more direct prompt for the AI
+        const prompt = `You are a task breakdown assistant. Given the task "${taskText}", provide a JSON object with a "subtasks" key containing an array of 2-4 actionable subtasks. Your response MUST be only the JSON object. Example: {"subtasks": ["Subtask 1", "Subtask 2"]}`;
 
-        if (match && match[0]) {
-            try {
-                responseData = JSON.parse(match[0]);
-            } catch (jsonError) {
-                console.error("Failed to parse JSON from AI response:", jsonError);
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        
+        // Robust JSON extraction
+        let subtasks = [];
+        try {
+            // Find the JSON part of the response, even if the AI adds extra text
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                const parsedResponse = JSON.parse(jsonMatch[0]);
+                if (parsedResponse.subtasks && Array.isArray(parsedResponse.subtasks)) {
+                    subtasks = parsedResponse.subtasks;
+                }
             }
+        } catch (parseError) {
+            console.error('Failed to parse AI response:', responseText, parseError);
+            // If parsing fails, we'll return an empty array, which the frontend handles gracefully.
         }
 
         return {
             statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(responseData),
+            headers,
+            body: JSON.stringify({ subtasks: subtasks }),
         };
     } catch (error) {
         console.error('Error in Netlify function:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to generate subtasks.' }),
+            headers,
+            body: JSON.stringify({ error: `An internal server error occurred: ${error.message}` }),
         };
     }
 };
