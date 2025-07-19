@@ -470,6 +470,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Apple Login Button Logic
+  const appleBtn = document.getElementById('apple-login-btn');
+  if (appleBtn) {
+    appleBtn.addEventListener('click', () => {
+      window.location.href = '/.netlify/functions/apple-auth';
+    });
+  }
+
   // If redirected back from Google, show user info
   const userInfoDiv = document.getElementById('user-info');
   const params = new URLSearchParams(window.location.search);
