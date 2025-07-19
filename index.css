@@ -248,7 +248,7 @@ body {
 
 .notes-editor textarea {
     width: 100%;
-    min-height: 18px; /* Single row height */
+    min-height: 24px; /* Increased to ensure at least one full line */
     padding: 0.25rem 0.5rem; /* Reduced padding */
     border-radius: 8px;
     border: 1px solid var(--border-color);
