@@ -58,12 +58,20 @@ function createTaskElement(task) {
   taskItem.setAttribute('data-open', task.isOpen);
   taskItem.dataset.id = task.id;
 
+  // UPDATED: Main task now has the same edit/delete icons as subtasks
   taskItem.innerHTML = `
     <div class="task-header">
         <div class="task-header-main">
             <h2>${task.text}</h2>
         </div>
-        <button class="delete-btn" aria-label="Delete task">&times;</button>
+        <div class="task-actions">
+            <button class="edit-btn" aria-label="Edit task">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            </button>
+            <button class="delete-btn" aria-label="Delete task">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+        </div>
     </div>
     <div class="task-body">
       ${task.isGenerating ? '<div class="loading-spinner"></div>' : createSubtasksHtml(task)}
@@ -73,7 +81,12 @@ function createTaskElement(task) {
   taskItem.querySelector('.task-header').addEventListener('click', (e) => {
     if (!e.target.closest('button')) handleToggleAccordion(task.id);
   });
-  taskItem.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
+  
+  // UPDATED: Event listeners for the new main task actions
+  const taskActions = taskItem.querySelector('.task-header .task-actions');
+  taskActions.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
+  taskActions.querySelector('.edit-btn').addEventListener('click', (e) => handleEditTask(e.currentTarget, task.id));
+
   taskItem.querySelector('.task-notes-textarea')?.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
   
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
@@ -91,7 +104,6 @@ function createTaskElement(task) {
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
     
-    // REMOVED: Regenerate button and toolbar. Updated empty message.
     return `
     ${hasSubtasks ? `
     <ul class="subtask-list" data-task-id="${task.id}">
@@ -217,8 +229,6 @@ async function generateSubtasksForTask(taskText) {
     }
 }
 
-// REMOVED: handleRegenerateSubtasks function is no longer needed
-
 function handleToggleAccordion(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
@@ -261,6 +271,48 @@ function handleDeleteSubtask(taskId, subtaskId) {
   }
 }
 
+// ADDED: Function to edit the main task title
+function handleEditTask(editBtn, taskId) {
+  const taskHeader = editBtn.closest('.task-header');
+  const headerMain = taskHeader.querySelector('.task-header-main');
+  const isEditing = editBtn.getAttribute('aria-label') === 'Save task';
+
+  if (isEditing) {
+    const editInput = headerMain.querySelector('.edit-input');
+    const newText = editInput.value.trim();
+    const task = tasks.find(t => t.id === taskId);
+    if (task && newText) {
+      task.text = newText;
+    }
+    saveTasks();
+    renderApp();
+  } else {
+    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
+    editBtn.setAttribute('aria-label', 'Save task');
+    const h2 = headerMain.querySelector('h2');
+    const currentText = h2.textContent || '';
+    
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.value = currentText;
+    editInput.className = 'edit-input main-task-edit'; // Special class for main task input
+    
+    headerMain.replaceChild(editInput, h2);
+    
+    editInput.focus();
+    editInput.select();
+
+    const saveOnKey = (e) => {
+        if (e.key === 'Enter' || e.key === 'Escape') {
+            e.preventDefault();
+            editBtn.click();
+        }
+    };
+    editInput.addEventListener('keydown', saveOnKey);
+    editInput.addEventListener('blur', () => editBtn.click()); // Save when focus is lost
+  }
+}
+
 function handleEditSubtask(editBtn, taskId, subtaskId) {
   const subtaskItem = editBtn.closest('.subtask-item');
   const contentDiv = subtaskItem.querySelector('.subtask-content');
@@ -292,15 +344,14 @@ function handleEditSubtask(editBtn, taskId, subtaskId) {
     editInput.focus();
     editInput.select();
 
-    const saveOnEnter = (e) => {
-        if (e.key === 'Enter') {
+    const saveOnKey = (e) => {
+        if (e.key === 'Enter' || e.key === 'Escape') {
             e.preventDefault();
             editBtn.click();
-        } else if (e.key === 'Escape') {
-            renderApp();
         }
     };
-    editInput.addEventListener('keydown', saveOnEnter);
+    editInput.addEventListener('keydown', saveOnKey);
+    editInput.addEventListener('blur', () => editBtn.click());
   }
 }
 

@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const AI_MODEL_NAME = 'gemini-1.5-flash';
+const AI_MODEL_NAME = 'gemini-2.5-flash';
 
 exports.handler = async function(event, context) {
     const headers = {
@@ -32,8 +32,8 @@ exports.handler = async function(event, context) {
         const genAI = new GoogleGenerativeAI(process.env.API_KEY);
         const model = genAI.getGenerativeModel({ model: AI_MODEL_NAME });
         
-        // UPDATED: Prompt now specifically asks for 2-3 subtasks.
-        const prompt = `You are a task breakdown assistant. Given the task "${taskText}", provide a JSON object with a "subtasks" key containing an array of 2-3 actionable subtasks. Your response MUST be only the JSON object. Example: {"subtasks": ["Subtask 1", "Subtask 2"]}`;
+        // UPDATED: Prompt now instructs the AI to use the same language as the input.
+        const prompt = `You are a task breakdown assistant. Given the task "${taskText}", provide a JSON object with a "subtasks" key containing an array of 2-3 actionable subtasks. IMPORTANT: The subtasks must be in the same language as the original task. Your response MUST be only the JSON object. Example: {"subtasks": ["Subtask 1", "Subtask 2"]}`;
 
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();

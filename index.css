@@ -1,4 +1,4 @@
-/* Dark mode is now the only theme */
+/* Dark mode is the only theme */
 :root {
     --background-color: #0d1117;
     --container-bg: #161b22;
@@ -114,7 +114,7 @@ body {
     background-color: var(--container-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     overflow: hidden;
 }
 
@@ -122,7 +122,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     cursor: pointer;
     user-select: none;
 }
@@ -132,20 +132,8 @@ body {
 }
 
 .task-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 500;
-}
-
-.delete-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--subtle-text);
-    padding: 0.25rem;
-}
-
-.delete-btn:hover {
-    color: var(--primary-color);
 }
 
 .task-body {
@@ -210,13 +198,15 @@ body {
     font-style: italic;
 }
 
-.subtask-actions {
+.task-actions {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
+    margin-left: 1rem;
 }
 
-.subtask-actions button {
+.task-actions button {
     background: none;
     border: none;
     cursor: pointer;
@@ -225,21 +215,21 @@ body {
     transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.subtask-actions button svg {
+.task-actions button svg {
     width: 18px;
     height: 18px;
     stroke: currentColor;
 }
 
-.subtask-actions button:hover {
+.task-actions button:hover {
     transform: scale(1.2);
 }
 
-.subtask-actions .edit-btn:hover {
+.task-actions .edit-btn:hover {
     color: var(--primary-color);
 }
 
-.subtask-actions .delete-btn:hover {
+.task-actions .delete-btn:hover {
     color: #ff7b72;
 }
 
@@ -253,6 +243,11 @@ body {
     line-height: 1.5;
     background-color: var(--background-color);
     color: var(--text-color);
+}
+
+.edit-input.main-task-edit {
+    font-size: 1.1rem;
+    font-weight: 500;
 }
 
 .edit-input:focus {
