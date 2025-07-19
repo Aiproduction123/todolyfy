@@ -21,8 +21,7 @@ function loadState() {
           if (task.notes === undefined) task.notes = '';
       });
     }
-  } catch (error)
-{
+  } catch (error) {
     console.error("Failed to load tasks from localStorage", error);
     tasks = [];
   }
@@ -40,8 +39,11 @@ function saveTasks() {
 function renderApp() {
   if (!taskListEl) return;
   
+  const openTasks = new Set(tasks.filter(t => t.isOpen).map(t => t.id));
+  
   taskListEl.innerHTML = '';
   tasks.forEach(task => {
+    if (openTasks.has(task.id)) task.isOpen = true;
     const taskElement = createTaskElement(task);
     taskListEl.appendChild(taskElement);
   });
@@ -56,7 +58,6 @@ function createTaskElement(task) {
   taskItem.setAttribute('data-open', task.isOpen);
   taskItem.dataset.id = task.id;
 
-  // REMOVED: Due date display from this template
   taskItem.innerHTML = `
     <div class="task-header">
         <div class="task-header-main">
@@ -76,14 +77,14 @@ function createTaskElement(task) {
   taskItem.querySelector('.regenerate-btn')?.addEventListener('click', () => handleRegenerateSubtasks(task.id, task.text));
   taskItem.querySelector('.task-notes-textarea')?.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
   
+  // RESTORED: Add listeners for all subtask actions
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
       const subtaskId = subtaskEl.dataset.subtaskId;
       if (!subtaskId) return;
       
-      const checkbox = subtaskEl.querySelector('input[type="checkbox"]');
-      if(checkbox) {
-          checkbox.addEventListener('change', () => handleToggleSubtask(task.id, subtaskId));
-      }
+      subtaskEl.querySelector('input[type="checkbox"]')?.addEventListener('change', () => handleToggleSubtask(task.id, subtaskId));
+      subtaskEl.querySelector('.edit-btn')?.addEventListener('click', (e) => handleEditSubtask(e.currentTarget, task.id, subtaskId));
+      subtaskEl.querySelector('.delete-btn')?.addEventListener('click', () => handleDeleteSubtask(task.id, subtaskId));
   });
 
   return taskItem;
@@ -91,20 +92,27 @@ function createTaskElement(task) {
 
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
-    // REMOVED: Due date picker from the toolbar
+    
     return `
     <div class="task-toolbar">
-        ${hasSubtasks ? '<button class="regenerate-btn">Regenerate</button>' : ''}
+        <button class="regenerate-btn">Regenerate</button>
     </div>
     ${hasSubtasks ? `
     <ul class="subtask-list" data-task-id="${task.id}">
       ${task.subtasks.map(subtask => `
         <li class="subtask-item ${subtask.completed ? 'completed' : ''}" data-subtask-id="${subtask.id}">
-          <input type="checkbox" id="${subtask.id}" ${subtask.completed ? 'checked' : ''} />
-          <span class="task-text">${subtask.text}</span>
+          <div class="subtask-content">
+            <input type="checkbox" id="${subtask.id}" ${subtask.completed ? 'checked' : ''} />
+            <span class="task-text">${subtask.text}</span>
+          </div>
+          <!-- RESTORED: Edit and Delete buttons for subtasks -->
+          <div class="subtask-actions">
+            <button class="edit-btn" aria-label="Edit subtask">✏️</button>
+            <button class="delete-btn" aria-label="Delete subtask">🗑️</button>
+          </div>
         </li>
       `).join('')}
-    </ul>` : ''}
+    </ul>` : '<p class="no-subtasks-message">No subtasks were generated. Try regenerating.</p>'}
     <div class="task-notes">
         <textarea class="task-notes-textarea" placeholder="Add notes...">${task.notes || ''}</textarea>
     </div>
@@ -140,7 +148,6 @@ async function handleFormSubmit(e) {
   addTaskBtn.disabled = true;
   addTaskBtn.textContent = 'Generating...';
 
-  // REMOVED: dueDate property from the new task object
   const newTask = {
     id: `task-${Date.now()}`,
     text: taskText,
@@ -183,6 +190,7 @@ async function handleFormSubmit(e) {
   }
 }
 
+// FIXED: This function now safely handles non-JSON success responses
 async function generateSubtasksForTask(taskText) {
     const response = await fetch('/api/generate-subtasks', {
         method: 'POST',
@@ -201,8 +209,14 @@ async function generateSubtasksForTask(taskText) {
         }
         throw new Error(errorMessage);
     }
-    const { subtasks } = JSON.parse(responseText);
-    return subtasks || [];
+    
+    try {
+        const { subtasks } = JSON.parse(responseText);
+        return subtasks || [];
+    } catch (e) {
+        console.error("Failed to parse successful AI response as JSON:", responseText);
+        return []; // Treat non-JSON response as no subtasks
+    }
 }
 
 async function handleRegenerateSubtasks(taskId, taskText) {
@@ -238,8 +252,6 @@ function handleToggleAccordion(taskId) {
     }
 }
 
-// REMOVED: The entire handleSetDueDate function
-
 function handleSetNotes(taskId, notes) {
     const task = tasks.find(t => t.id === taskId);
     if(task) {
@@ -262,6 +274,60 @@ function handleToggleSubtask(taskId, subtaskId) {
         saveTasks();
         renderApp();
     }
+}
+
+// RESTORED: Function to delete a subtask
+function handleDeleteSubtask(taskId, subtaskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (task) {
+    task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
+    saveTasks();
+    renderApp();
+  }
+}
+
+// RESTORED: Function to edit a subtask
+function handleEditSubtask(editBtn, taskId, subtaskId) {
+  const subtaskItem = editBtn.closest('.subtask-item');
+  const contentDiv = subtaskItem.querySelector('.subtask-content');
+  const isEditing = editBtn.getAttribute('aria-label') === 'Save subtask';
+
+  if (isEditing) {
+    const editInput = contentDiv.querySelector('.edit-input');
+    const newText = editInput.value.trim();
+    const task = tasks.find(t => t.id === taskId);
+    const subtask = task?.subtasks.find(st => st.id === subtaskId);
+    if (subtask && newText) {
+      subtask.text = newText;
+    }
+    saveTasks();
+    renderApp();
+  } else {
+    editBtn.innerHTML = '💾';
+    editBtn.setAttribute('aria-label', 'Save subtask');
+    const textSpan = contentDiv.querySelector('.task-text');
+    const currentText = textSpan.textContent || '';
+    
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.value = currentText;
+    editInput.className = 'edit-input';
+    
+    contentDiv.replaceChild(editInput, textSpan);
+    
+    editInput.focus();
+    editInput.select();
+
+    const saveOnEnter = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            editBtn.click();
+        } else if (e.key === 'Escape') {
+            renderApp();
+        }
+    };
+    editInput.addEventListener('keydown', saveOnEnter);
+  }
 }
 
 // --- Initial Load ---
