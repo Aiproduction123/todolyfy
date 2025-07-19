@@ -19,6 +19,7 @@ function loadState() {
           task.isGenerating = false;
           if (task.isOpen === undefined) task.isOpen = true;
           if (task.notes === undefined) task.notes = '';
+          if (task.completed === undefined) task.completed = false; // Add completed state
       });
     }
   } catch (error) {
@@ -54,13 +55,14 @@ function renderApp() {
 function createTaskElement(task) {
   const taskItem = document.createElement('article');
   taskItem.id = task.id;
-  taskItem.className = 'task-item';
+  taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
   taskItem.setAttribute('data-open', task.isOpen);
   taskItem.dataset.id = task.id;
 
   taskItem.innerHTML = `
     <div class="task-header">
         <div class="task-header-main">
+            <input type="checkbox" class="task-checkbox" id="task-${task.id}" ${task.completed ? 'checked' : ''} />
             <h2>${task.text}</h2>
         </div>
         <div class="task-actions">
@@ -78,19 +80,21 @@ function createTaskElement(task) {
   `;
   
   taskItem.querySelector('.task-header').addEventListener('click', (e) => {
-    if (!e.target.closest('button')) handleToggleAccordion(task.id);
+    if (e.target.closest('button') || e.target.matches('.task-checkbox')) return;
+    handleToggleAccordion(task.id);
   });
   
   const taskActions = taskItem.querySelector('.task-header .task-actions');
   taskActions.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
   taskActions.querySelector('.edit-btn').addEventListener('click', (e) => handleEditTask(e.currentTarget, task.id));
+  
+  taskItem.querySelector('.task-header .task-checkbox').addEventListener('change', () => handleToggleTask(task.id));
 
-  // UPDATED: Add listener for auto-expanding textarea
   const notesTextarea = taskItem.querySelector('.task-notes-textarea');
   if (notesTextarea) {
       notesTextarea.addEventListener('input', autoResizeTextarea);
       notesTextarea.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
-      autoResizeTextarea({ target: notesTextarea }); // Set initial size
+      autoResizeTextarea({ target: notesTextarea });
   }
   
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
@@ -108,14 +112,13 @@ function createTaskElement(task) {
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
     
-    // UPDATED: Subtasks now have the same modern SVG icons
     return `
     ${hasSubtasks ? `
     <ul class="subtask-list" data-task-id="${task.id}">
       ${task.subtasks.map(subtask => `
         <li class="subtask-item ${subtask.completed ? 'completed' : ''}" data-subtask-id="${subtask.id}">
           <div class="subtask-content">
-            <input type="checkbox" id="${subtask.id}" ${subtask.completed ? 'checked' : ''} />
+            <input type="checkbox" class="task-checkbox" id="${subtask.id}" ${subtask.completed ? 'checked' : ''} />
             <span class="task-text">${subtask.text}</span>
           </div>
           <div class="task-actions">
@@ -167,6 +170,7 @@ async function handleFormSubmit(e) {
   const newTask = {
     id: `task-${Date.now()}`,
     text: taskText,
+    completed: false,
     subtasks: [],
     isGenerating: true,
     isOpen: true,
@@ -257,11 +261,26 @@ function handleDeleteTask(taskId) {
   renderApp();
 }
 
+function handleToggleTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if(task) {
+        task.completed = !task.completed;
+        task.subtasks.forEach(subtask => subtask.completed = task.completed);
+        saveTasks();
+        renderApp();
+    }
+}
+
 function handleToggleSubtask(taskId, subtaskId) {
     const task = tasks.find(t => t.id === taskId);
     const subtask = task?.subtasks.find(st => st.id === subtaskId);
     if(subtask) {
         subtask.completed = !subtask.completed;
+        if (task.subtasks.every(st => st.completed)) {
+            task.completed = true;
+        } else {
+            task.completed = false;
+        }
         saveTasks();
         renderApp();
     }
@@ -359,7 +378,6 @@ function handleEditSubtask(editBtn, taskId, subtaskId) {
   }
 }
 
-// ADDED: Helper function to auto-resize textarea
 function autoResizeTextarea(event) {
     const textarea = event.target;
     textarea.style.height = 'auto';

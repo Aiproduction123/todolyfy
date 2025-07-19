@@ -118,6 +118,12 @@ body {
     overflow: hidden;
 }
 
+/* ADDED: Style for completed main tasks */
+.task-item.completed .task-header h2 {
+    text-decoration: line-through;
+    color: var(--done-color);
+}
+
 .task-header {
     display: flex;
     justify-content: space-between;
@@ -125,15 +131,20 @@ body {
     padding: 0.5rem 1rem; /* Greatly reduced padding */
     cursor: pointer;
     user-select: none;
+    gap: 0.75rem;
 }
 
 .task-header-main {
     flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .task-header h2 {
     font-size: 1rem; /* Smaller font size */
     font-weight: 500;
+    margin: 0;
 }
 
 .task-body {
@@ -149,19 +160,19 @@ body {
     max-height: 1000px;
 }
 
-/* UPDATED: Styles for auto-expanding textarea */
 .task-notes textarea {
     width: 100%;
-    padding: 0.5rem;
+    min-height: 42px; /* UPDATED: Set minimum height to match input box */
+    padding: 0.75rem 1rem; /* Match input box padding */
     border-radius: 6px;
     border: 1px solid var(--border-color);
     font-family: inherit;
     font-size: 0.9rem;
-    resize: none; /* Disable manual resize handle */
+    resize: none;
     margin-top: 0.5rem;
     background-color: var(--background-color);
     color: var(--text-color);
-    overflow-y: hidden; /* Hide scrollbar */
+    overflow-y: hidden;
 }
 
 .subtask-list {
@@ -257,6 +268,37 @@ body {
 .edit-input:focus {
     outline: none;
     border-color: var(--primary-color);
+}
+
+/* ADDED: Styles for checkboxes */
+.task-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.task-checkbox:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.task-checkbox:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
 }
 
 .loading-spinner {
