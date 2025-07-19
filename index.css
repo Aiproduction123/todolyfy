@@ -10,6 +10,7 @@
     --done-color: #586069;
     --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     --drag-ghost-color: rgba(108, 92, 231, 0.2);
+    --success-color: #28a745;
 }
 
 body {
@@ -183,26 +184,91 @@ body {
 }
 
 .task-item[data-open="true"] .task-body {
-    padding: 0.5rem 1rem;
+    padding: 1rem;
     max-height: 1000px;
 }
 
-/* UPDATED: Styles for the notes textarea */
+/* === NEW AND IMPROVED NOTES SECTION === */
+
+.task-notes {
+    position: relative;
+    margin-top: 0.75rem;
+}
+
 .task-notes textarea {
     width: 100%;
-    min-height: 42px; /* Taller default height */
-    padding: 0.75rem 1rem; /* Increased padding to center placeholder */
-    border-radius: 6px;
+    min-height: 48px;
+    padding: 0.85rem 4rem 0.85rem 1rem; /* Right padding makes room for the button */
+    border-radius: 8px;
     border: 1px solid var(--border-color);
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     resize: none;
-    margin-top: 0.5rem;
     background-color: var(--background-color);
     color: var(--text-color);
     overflow-y: hidden;
-    box-sizing: border-box; /* Ensures padding doesn't cause overflow */
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
 }
+
+.task-notes textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+}
+
+.task-notes textarea::placeholder {
+    color: var(--subtle-text);
+}
+
+.save-notes-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 32px;
+    width: 60px;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-50%) scale(0.95);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease, background-color 0.2s ease;
+}
+
+/* Show button when textarea is focused or has content */
+.task-notes:focus-within .save-notes-btn,
+.task-notes textarea:not(:placeholder-shown) + .save-notes-btn {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) scale(1);
+}
+
+.save-notes-btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.save-notes-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+}
+
+.save-notes-btn.saved {
+    background-color: var(--success-color);
+}
+
+/* === END OF NEW NOTES SECTION === */
 
 .subtask-list {
     list-style: none;
