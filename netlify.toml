@@ -1,9 +1,17 @@
 # Build configuration
 [build]
-  # This tells Netlify to deploy the files from the root of your repository.
+  # This tells Netlify where your site's main files (like index.html) are.
   publish = "."
 
-# Redirects for clean URLs
+# This is the CRUCIAL rule that makes your subtask generation work.
+# It tells Netlify to route any request starting with /api/
+# to your serverless functions.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# This is your other redirect for the privacy page.
 [[redirects]]
   from = "/privacy"
   to = "/privacy.html"
