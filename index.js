@@ -97,10 +97,12 @@ function createTaskElement(task) {
   
   taskItem.querySelector('.task-header .task-checkbox').addEventListener('change', () => handleToggleTask(task.id));
 
+  // UPDATED: Add event listeners for notes functionality
   const notesTextarea = taskItem.querySelector('.task-notes-textarea');
-  if (notesTextarea) {
+  const saveNotesBtn = taskItem.querySelector('.save-notes-btn');
+  if (notesTextarea && saveNotesBtn) {
       notesTextarea.addEventListener('input', autoResizeTextarea);
-      notesTextarea.addEventListener('change', (e) => handleSetNotes(task.id, e.target.value));
+      saveNotesBtn.addEventListener('click', () => handleSaveNotes(task.id));
       autoResizeTextarea({ target: notesTextarea });
   }
   
@@ -141,6 +143,14 @@ function createSubtasksHtml(task) {
     </ul>` : '<p class="no-subtasks-message">No subtasks were generated for this task.</p>'}
     <div class="task-notes">
         <textarea class="task-notes-textarea" placeholder="Add notes..." rows="1">${task.notes || ''}</textarea>
+        <button class="save-notes-btn" aria-label="Save notes">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save
+        </button>
     </div>
   `;
 }
@@ -256,11 +266,35 @@ function handleToggleAccordion(taskId) {
     }
 }
 
-function handleSetNotes(taskId, notes) {
+// UPDATED: New function to handle saving notes with explicit button click
+function handleSaveNotes(taskId) {
+    const taskElement = document.getElementById(taskId);
+    const textarea = taskElement.querySelector('.task-notes-textarea');
+    const saveBtn = taskElement.querySelector('.save-notes-btn');
+    
+    if (!textarea || !saveBtn) return;
+    
+    const notes = textarea.value.trim();
     const task = tasks.find(t => t.id === taskId);
-    if(task) {
+    
+    if (task) {
         task.notes = notes;
         saveTasks();
+        
+        // Visual feedback
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Saved!
+        `;
+        saveBtn.style.backgroundColor = '#28a745';
+        
+        setTimeout(() => {
+            saveBtn.innerHTML = originalText;
+            saveBtn.style.backgroundColor = '';
+        }, 2000);
     }
 }
 

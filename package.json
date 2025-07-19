@@ -1,0 +1,15 @@
+{
+  "name": "todolyfy-functions",
+  "version": "1.0.0",
+  "description": "Netlify functions for Todolyfy",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.14.1",
+    "googleapis": "^140.0.1"
+  }
+}
