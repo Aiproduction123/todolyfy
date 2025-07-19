@@ -196,8 +196,8 @@ body {
 /* 1. View Mode (Default) */
 .notes-display {
     display: flex;
-    align-items: flex-start; /* Aligns items to the top */
-    gap: 0.75rem;
+    align-items: center; /* Aligns items to the top */
+    gap: 0.5rem;
     padding: 4px 8px; /* Minimal padding */
     border-radius: 6px;
     cursor: pointer;
@@ -213,7 +213,7 @@ body {
     height: 18px;
     stroke: var(--subtle-text);
     flex-shrink: 0;
-    margin-top: 1px; /* Precision alignment */
+    margin-top: 0; /* Precision alignment */
 }
 
 .notes-text {
@@ -246,7 +246,7 @@ body {
 
 .notes-editor textarea {
     width: 100%;
-    min-height: 80px;
+    height: 36px; /* Set the height to match a single row */
     padding: 0.75rem 1rem;
     border-radius: 8px;
     border: 1px solid var(--border-color);
