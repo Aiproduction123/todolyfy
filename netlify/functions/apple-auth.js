@@ -1,11 +1,14 @@
 const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
+  // Standardize to the non-www version, which should be the canonical URL.
+  // Use the Netlify-provided URL to ensure consistency across environments.
+  const redirect_uri = `${process.env.URL}/auth/apple/callback`;
+
   const params = {
     response_type: 'code',
     client_id: process.env.APPLE_CLIENT_ID,
-    // This redirect_uri now exactly matches your Apple Developer configuration.
-    redirect_uri: 'https://todolyfy.com/auth/apple/callback',
+    redirect_uri,
     scope: 'name email',
     state: 'todolyfy', // It's a good security practice to generate a unique, random state value for each request.
     response_mode: 'form_post'
@@ -21,4 +24,4 @@ exports.handler = async function(event, context) {
     },
     body: ''
   };
-}; 
+};
