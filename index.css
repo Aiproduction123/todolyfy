@@ -34,10 +34,20 @@ body {
 
 .app-header {
     display: flex;
-    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    gap: 1rem;
     margin-bottom: 2rem;
+    position: relative;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo {
+    flex-shrink: 0;
 }
 
 .logo path {
@@ -50,14 +60,21 @@ body {
 
 .header-text h1 {
     margin: 0;
-    font-size: 2rem;
     color: var(--text-color);
+    line-height: 1.2;
 }
 
 .header-text p {
     margin: 0;
     color: var(--subtle-text);
-    font-size: 1rem;
+    line-height: 1.4;
+}
+
+#auth-section {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10;
 }
 
 .task-form {
