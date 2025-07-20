@@ -478,11 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadState();
   renderApp();
 
-  const authSection = document.getElementById('auth-section');
-  const appHeader = document.querySelector('.app-header');
-  if (authSection && appHeader) {
-      appHeader.appendChild(authSection);
-  }
+  // Login buttons are now positioned correctly in the HTML structure
 
   const loginButtons = document.getElementById('login-buttons');
   const userInfoDiv = document.getElementById('user-info');
