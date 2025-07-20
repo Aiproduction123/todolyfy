@@ -1,7 +1,6 @@
 import { google } from 'googleapis';
 
-// Use the Netlify-provided URL for the redirect URI.
-const OAUTH2_REDIRECT_URI = `${process.env.URL}/auth/callback`;
+const OAUTH2_REDIRECT_URI = `${process.env.URL}/.netlify/functions/auth-callback`;
 
 export const handler = async function(event, context) {
     
@@ -19,9 +18,6 @@ export const handler = async function(event, context) {
     const authorizationUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
-        prompt: 'consent',
-        response_type: 'code',
-        state: Buffer.from(JSON.stringify({ redirectPath: '/' })).toString('base64'),
         include_granted_scopes: true
     });
 
