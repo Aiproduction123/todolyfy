@@ -478,8 +478,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadState();
   renderApp();
 
-  // Login buttons are now positioned correctly in the HTML structure
-
   const loginButtons = document.getElementById('login-buttons');
   const userInfoDiv = document.getElementById('user-info');
   const params = new URLSearchParams(window.location.search);
