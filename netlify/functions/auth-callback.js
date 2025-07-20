@@ -1,46 +1,49 @@
-import { google } from 'googleapis';
+const { google } = require('googleapis');
+const querystring = require('querystring');
 
-// Use the clean redirect URI defined in netlify.toml
-const OAUTH2_REDIRECT_URI = `https://todolyfy.com/.netlify/functions/auth-callback`;
+exports.handler = async function(event, context) {
+  const code = event.queryStringParameters.code;
 
-export const handler = async function(event, context) {
-    // Log environment variables for debugging
-    console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-    console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? '[REDACTED]' : 'undefined');
-    console.log('OAUTH2_REDIRECT_URI:', OAUTH2_REDIRECT_URI);
+  // The redirect_uri must be the public-facing URL, exactly matching what's in your Google Cloud Console
+  // and what was used in the auth-start function.
+  const redirectUri = `${process.env.URL}/auth/google/callback`;
 
-    const code = event.queryStringParameters.code;
-    const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        OAUTH2_REDIRECT_URI
-    );
-    try {
-        const { tokens } = await oauth2Client.getToken(code);
-        console.log('Google token exchange response:', tokens);
-        oauth2Client.setCredentials(tokens);
-        const oauth2 = google.oauth2({
-            auth: oauth2Client,
-            version: 'v2'
-        });
-        const { data } = await oauth2.userinfo.get();
-        console.log('Google userinfo response:', data);
-        const { name, picture, email } = data;
-        // Set user info cookie and redirect to home page
-        const userInfo = JSON.stringify({ name, picture, email });
-        return {
-            statusCode: 302,
-            headers: {
-                'Set-Cookie': `user-info=${encodeURIComponent(userInfo)}; Path=/; SameSite=Lax`,
-                Location: `/`
-            },
-            body: ''
-        };
-    } catch (error) {
-        console.error('Google authentication callback error:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Authentication failed.', details: error.message })
-        };
-    }
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri
+  );
+
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    const oauth2 = google.oauth2({
+      auth: oauth2Client,
+      version: 'v2'
+    });
+
+    const { data: user } = await oauth2.userinfo.get();
+
+    // Redirect to the home page with user info in query params
+    const params = {
+      name: user.name,
+      picture: user.picture
+    };
+
+    return {
+      statusCode: 302,
+      headers: {
+        Location: `/?${querystring.stringify(params)}`,
+        'Cache-Control': 'no-cache'
+      },
+      body: ''
+    };
+  } catch (error) {
+    console.error('Error exchanging token:', error);
+    return {
+      statusCode: 500,
+      body: 'Authentication failed. Please try again.'
+    };
+  }
 };
