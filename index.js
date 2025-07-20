@@ -17,12 +17,13 @@ function loadState() {
     const storedTasks = localStorage.getItem(TASK_STORAGE_KEY);
     if (storedTasks) {
       tasks = JSON.parse(storedTasks);
+      // Initialize any missing properties on tasks loaded from localStorage
       tasks.forEach(task => {
           task.isGenerating = false;
           if (task.isOpen === undefined) task.isOpen = true;
           if (task.notes === undefined) task.notes = '';
           if (task.completed === undefined) task.completed = false;
-          task.isEditingNotes = false; 
+          task.isEditingNotes = false;
       });
     }
   } catch (error) {
@@ -33,6 +34,7 @@ function loadState() {
 
 function saveTasks() {
   try {
+    // Ensure editing mode is not saved
     tasks.forEach(task => task.isEditingNotes = false);
     localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
   } catch (error) {
@@ -43,13 +45,14 @@ function saveTasks() {
 // --- Rendering ---
 function renderApp() {
   if (!taskListEl) return;
-  
+
   const tasksToRender = tasks.filter(task => {
       if (currentView === 'active') return !task.completed;
       if (currentView === 'completed') return task.completed;
       return true;
   });
 
+  // Persist focus and scroll position across re-renders
   const activeElementId = document.activeElement?.id;
   const scrollPosition = window.scrollY;
 
@@ -59,6 +62,7 @@ function renderApp() {
     taskListEl.appendChild(taskElement);
   });
 
+  // Restore focus if the active element was a textarea
   if (activeElementId) {
       const elementToFocus = document.getElementById(activeElementId);
       if (elementToFocus && elementToFocus.tagName === 'TEXTAREA') {
@@ -98,16 +102,17 @@ function createTaskElement(task) {
       ${task.isGenerating ? '<div class="loading-spinner"></div>' : createSubtasksHtml(task)}
     </div>
   `;
-  
+
+  // --- Event Listeners for the task item ---
   taskItem.querySelector('.task-header').addEventListener('click', (e) => {
     if (e.target.closest('button') || e.target.matches('.task-checkbox')) return;
     handleToggleAccordion(task.id);
   });
-  
+
   const taskActions = taskItem.querySelector('.task-header .task-actions');
   taskActions.querySelector('.delete-btn').addEventListener('click', () => handleDeleteTask(task.id));
   taskActions.querySelector('.edit-btn').addEventListener('click', (e) => handleEditTask(e.currentTarget, task.id));
-  
+
   taskItem.querySelector('.task-header .task-checkbox').addEventListener('change', () => handleToggleTask(task.id));
 
   const notesContainer = taskItem.querySelector('.task-notes');
@@ -121,11 +126,11 @@ function createTaskElement(task) {
           autoResizeTextarea({ target: textarea });
       }
   }
-  
+
   taskItem.querySelectorAll('.subtask-item').forEach(subtaskEl => {
       const subtaskId = subtaskEl.dataset.subtaskId;
       if (!subtaskId) return;
-      
+
       subtaskEl.querySelector('input[type="checkbox"]')?.addEventListener('change', () => handleToggleSubtask(task.id, subtaskId));
       subtaskEl.querySelector('.edit-btn')?.addEventListener('click', (e) => handleEditSubtask(e.currentTarget, task.id, subtaskId));
       subtaskEl.querySelector('.delete-btn')?.addEventListener('click', () => handleDeleteSubtask(task.id, subtaskId));
@@ -134,7 +139,6 @@ function createTaskElement(task) {
   return taskItem;
 }
 
-// --- REWRITTEN createSubtasksHtml TO INCLUDE ICON AND CORRECT STRUCTURE ---
 function createSubtasksHtml(task) {
     const hasSubtasks = task.subtasks && task.subtasks.length > 0;
     const hasNotes = task.notes && task.notes.trim() !== '';
@@ -157,15 +161,12 @@ function createSubtasksHtml(task) {
     </ul>` : '<p class="no-subtasks-message">No subtasks were generated for this task.</p>'}
     
     <div class="task-notes ${task.isEditingNotes ? 'is-editing' : ''}">
-        <!-- View Mode -->
         <div class="notes-display ${hasNotes ? '' : 'is-empty'}">
             <svg class="notes-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             <div class="notes-text">
-                ${hasNotes ? task.notes : 'Add a description...'}
+                ${hasNotes ? task.notes.replace(/\n/g, '<br>') : 'Add a description...'}
             </div>
         </div>
-
-        <!-- Edit Mode -->
         <div class="notes-editor">
             <textarea id="notes-textarea-${task.id}" placeholder="Add a description..." rows="1">${task.notes || ''}</textarea>
             <div class="notes-editor-actions">
@@ -232,7 +233,8 @@ async function handleFormSubmit(e) {
     }
   } catch(error) {
     console.error('Error generating subtasks:', error);
-    alert(`An error occurred: ${error.message}`);
+    // Use a more user-friendly way to show errors than alert()
+    showErrorNotification(error.message);
     tasks = tasks.filter(t => t.id !== newTask.id);
   } finally {
     const taskToUpdate = tasks.find(t => t.id === newTask.id);
@@ -249,7 +251,7 @@ async function handleFormSubmit(e) {
 }
 
 async function generateSubtasksForTask(taskText) {
-    const response = await fetch('/api/generate-subtasks', {
+    const response = await fetch('/.netlify/functions/generate-subtasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskText }),
@@ -446,6 +448,16 @@ function updateActiveTab() {
     });
 }
 
+function showErrorNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'error-notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
 // --- Initial Load ---
 document.addEventListener('DOMContentLoaded', () => {
   if (taskForm) taskForm.addEventListener('submit', handleFormSubmit);
@@ -478,14 +490,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // If redirected back from Google, show user info
+  // Handle login success display
   const userInfoDiv = document.getElementById('user-info');
   const params = new URLSearchParams(window.location.search);
-  if (params.has('name') && params.has('picture')) {
-    userInfoDiv.innerHTML = `
-      <span>Welcome, ${params.get('name')}</span>
-      <img src="${params.get('picture')}" alt="User Avatar" style="width:32px;height:32px;border-radius:50%;margin-left:8px;">
-    `;
-    if (loginBtn) loginBtn.style.display = 'none';
+  
+  // Securely handle user info from localStorage if available
+  try {
+      const user = JSON.parse(localStorage.getItem('user-info'));
+      if (user && userInfoDiv) {
+          userInfoDiv.innerHTML = `
+              <span>Welcome, ${user.name}</span>
+              <img src="${user.picture}" alt="User Avatar" style="width:32px;height:32px;border-radius:50%;margin-left:8px;">
+          `;
+          if (loginBtn) loginBtn.style.display = 'none';
+          if (appleBtn) appleBtn.style.display = 'none';
+      }
+  } catch(e) {
+      // Could not parse user info
+  }
+
+  // If redirected back from Google/Apple, store user info and clean URL
+  if ((params.has('name') && params.has('picture')) || params.has('apple_success')) {
+      const user = {
+          name: params.get('name') || 'User',
+          picture: params.get('picture') || '' // Add a default avatar if none
+      };
+      localStorage.setItem('user-info', JSON.stringify(user));
+      
+      // Clean the URL
+      window.history.replaceState({}, document.title, "/");
+      
+      // Re-render the user info section
+      if (userInfoDiv) {
+          userInfoDiv.innerHTML = `
+              <span>Welcome, ${user.name}</span>
+              <img src="${user.picture}" alt="User Avatar" style="width:32px;height:32px;border-radius:50%;margin-left:8px;">
+          `;
+          if (loginBtn) loginBtn.style.display = 'none';
+          if (appleBtn) appleBtn.style.display = 'none';
+      }
   }
 });
