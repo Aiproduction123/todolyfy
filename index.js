@@ -233,7 +233,6 @@ async function handleFormSubmit(e) {
     }
   } catch(error) {
     console.error('Error generating subtasks:', error);
-    // Use a more user-friendly way to show errors than alert()
     showErrorNotification(error.message);
     tasks = tasks.filter(t => t.id !== newTask.id);
   } finally {
@@ -458,6 +457,11 @@ function showErrorNotification(message) {
     }, 5000);
 }
 
+function handleLogout() {
+    localStorage.removeItem('user-info');
+    window.location.href = '/';
+}
+
 // --- Initial Load ---
 document.addEventListener('DOMContentLoaded', () => {
   if (taskForm) taskForm.addEventListener('submit', handleFormSubmit);
@@ -474,60 +478,61 @@ document.addEventListener('DOMContentLoaded', () => {
   loadState();
   renderApp();
 
-  // Google Login Button Logic
-  const loginBtn = document.getElementById('google-login-btn');
-  if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-      window.location.href = '/.netlify/functions/auth-start';
-    });
+  const authSection = document.getElementById('auth-section');
+  const appHeader = document.querySelector('.app-header');
+  if (authSection && appHeader) {
+      appHeader.appendChild(authSection);
   }
 
-  // Apple Login Button Logic
-  const appleBtn = document.getElementById('apple-login-btn');
-  if (appleBtn) {
-    appleBtn.addEventListener('click', () => {
-      window.location.href = '/.netlify/functions/apple-auth';
-    });
-  }
-
-  // Handle login success display
+  const loginButtons = document.getElementById('login-buttons');
   const userInfoDiv = document.getElementById('user-info');
   const params = new URLSearchParams(window.location.search);
-  
-  // Securely handle user info from localStorage if available
-  try {
-      const user = JSON.parse(localStorage.getItem('user-info'));
-      if (user && userInfoDiv) {
-          userInfoDiv.innerHTML = `
-              <span>Welcome, ${user.name}</span>
-              <img src="${user.picture}" alt="User Avatar" style="width:32px;height:32px;border-radius:50%;margin-left:8px;">
-          `;
-          if (loginBtn) loginBtn.style.display = 'none';
-          if (appleBtn) appleBtn.style.display = 'none';
-      }
-  } catch(e) {
-      // Could not parse user info
-  }
 
-  // If redirected back from Google/Apple, store user info and clean URL
-  if ((params.has('name') && params.has('picture')) || params.has('apple_success')) {
-      const user = {
-          name: params.get('name') || 'User',
-          picture: params.get('picture') || '' // Add a default avatar if none
-      };
-      localStorage.setItem('user-info', JSON.stringify(user));
-      
-      // Clean the URL
-      window.history.replaceState({}, document.title, "/");
-      
-      // Re-render the user info section
+  const renderUserInfo = (user) => {
+      if (loginButtons) loginButtons.style.display = 'none';
       if (userInfoDiv) {
           userInfoDiv.innerHTML = `
-              <span>Welcome, ${user.name}</span>
-              <img src="${user.picture}" alt="User Avatar" style="width:32px;height:32px;border-radius:50%;margin-left:8px;">
+              <div class="user-profile">
+                  <img src="${user.picture || 'https://placehold.co/40x40/EFEFEF/333333?text=' + (user.name ? user.name.charAt(0) : 'U')}" alt="User Avatar" class="user-avatar">
+                  <div class="user-dropdown">
+                      <div class="user-name">${user.name || 'User'}</div>
+                      <button id="logout-btn" class="logout-btn">Logout</button>
+                  </div>
+              </div>
           `;
-          if (loginBtn) loginBtn.style.display = 'none';
-          if (appleBtn) appleBtn.style.display = 'none';
+          userInfoDiv.style.display = 'block';
+          document.getElementById('logout-btn').addEventListener('click', handleLogout);
       }
+  };
+
+  try {
+      const user = JSON.parse(localStorage.getItem('user-info'));
+      if (user) {
+          renderUserInfo(user);
+      } else {
+        if (loginButtons) loginButtons.style.display = 'flex';
+        if (userInfoDiv) userInfoDiv.style.display = 'none';
+      }
+  } catch(e) {
+      if (loginButtons) loginButtons.style.display = 'flex';
+      if (userInfoDiv) userInfoDiv.style.display = 'none';
   }
+
+  if ((params.has('name') && params.has('picture')) || params.has('apple_success')) {
+      const user = {
+          name: params.get('name') || JSON.parse(localStorage.getItem('user-info'))?.name || 'User',
+          picture: params.get('picture') || JSON.parse(localStorage.getItem('user-info'))?.picture || ''
+      };
+      localStorage.setItem('user-info', JSON.stringify(user));
+      window.history.replaceState({}, document.title, "/");
+      renderUserInfo(user);
+  }
+
+  document.getElementById('google-login-btn')?.addEventListener('click', () => {
+    window.location.href = '/.netlify/functions/auth-start';
+  });
+
+  document.getElementById('apple-login-btn')?.addEventListener('click', () => {
+    window.location.href = '/.netlify/functions/apple-auth';
+  });
 });
