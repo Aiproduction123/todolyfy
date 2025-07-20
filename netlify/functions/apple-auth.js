@@ -1,8 +1,9 @@
 const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
-  // Use the exact URI registered in the Apple Developer portal.
-  const redirect_uri = 'https://www.todolyfy.com/auth/apple/callback';
+  // Standardize to the non-www version, which should be the canonical URL.
+  // Use the Netlify-provided URL to ensure consistency across environments.
+  const redirect_uri = `${process.env.URL}/auth/apple/callback`;
 
   const params = {
     response_type: 'code',

@@ -41,8 +41,8 @@ exports.handler = async function(event, context) {
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      // This redirect_uri must also exactly match your Apple Developer configuration.
-      redirect_uri: 'https://www.todolyfy.com/auth/apple/callback',
+      // This redirect_uri must also exactly match the one in apple-auth.js and your Apple Developer configuration. It's built using the Netlify URL env var.
+      redirect_uri: `${process.env.URL}/auth/apple/callback`,
       client_id: process.env.APPLE_CLIENT_ID,
       client_secret: clientSecret
     });
