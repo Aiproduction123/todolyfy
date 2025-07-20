@@ -532,12 +532,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const user = JSON.parse(localStorage.getItem('user-info'));
       if (user) {
           renderUserInfo(user);
+          if (loginButtons) loginButtons.style.display = 'none';
       } else {
-        if (loginButtons) loginButtons.style.display = 'flex';
+        if (loginButtons) loginButtons.style.display = 'block';
         if (userInfoDiv) userInfoDiv.style.display = 'none';
       }
   } catch(e) {
-      if (loginButtons) loginButtons.style.display = 'flex';
+      if (loginButtons) loginButtons.style.display = 'block';
       if (userInfoDiv) userInfoDiv.style.display = 'none';
   }
 
