@@ -540,13 +540,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (userInfoDiv) userInfoDiv.style.display = 'none';
   }
 
-  if ((params.has('name') && params.has('picture')) || params.has('apple_success')) {
+  // Check for any successful login redirect (Google or Apple)
+  const loginSuccess = params.has('name') || params.has('apple_success');
+
+  if (loginSuccess) {
+      const existingUser = JSON.parse(localStorage.getItem('user-info')) || {};
       const user = {
-          name: params.get('name') || JSON.parse(localStorage.getItem('user-info'))?.name || 'User',
-          picture: params.get('picture') || JSON.parse(localStorage.getItem('user-info'))?.picture || ''
+          name: params.get('name') || existingUser.name || 'User',
+          picture: params.get('picture') || existingUser.picture || '',
+          email: params.get('email') || existingUser.email || ''
       };
       localStorage.setItem('user-info', JSON.stringify(user));
-      window.history.replaceState({}, document.title, "/");
+      window.history.replaceState({}, document.title, "/"); // Clean the URL
       renderUserInfo(user);
   }
 

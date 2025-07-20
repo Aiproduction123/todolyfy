@@ -11,6 +11,10 @@ exports.handler = async function(event, context) {
 
     const body = querystring.parse(event.body);
     const code = body.code;
+    // Apple sends user's name on first auth in the `user` field.
+    const userPayload = body.user ? JSON.parse(body.user) : null;
+    const userName = userPayload ? `${userPayload.name.firstName} ${userPayload.name.lastName}` : null;
+
 
     if (!code) {
       console.error('No authorization code received from Apple.');
@@ -37,7 +41,8 @@ exports.handler = async function(event, context) {
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      redirect_uri: `${process.env.URL}/auth/apple/callback`,
+      // This redirect_uri must also exactly match your Apple Developer configuration.
+      redirect_uri: 'https://www.todolyfy.com/auth/apple/callback',
       client_id: process.env.APPLE_CLIENT_ID,
       client_secret: clientSecret
     });
@@ -55,11 +60,21 @@ exports.handler = async function(event, context) {
         throw new Error(tokenData.error_description || 'Failed to get id_token from Apple.');
     }
 
-    // Redirect to home page. The client-side will handle the login state.
+    // Decode the token to get user's email and unique ID (sub).
+    // For production, you should also verify the token signature.
+    const decodedToken = jwt.decode(tokenData.id_token);
+    const email = decodedToken.email;
+
+    // Redirect to the home page with user info in the query parameters.
+    const redirectUrl = new URL('/', process.env.URL);
+    if (userName) redirectUrl.searchParams.set('name', userName);
+    if (email) redirectUrl.searchParams.set('email', email);
+    redirectUrl.searchParams.set('apple_success', 'true'); // To signal successful Apple login
+
     return {
       statusCode: 302,
       headers: {
-        Location: `/?apple_success=true` // A cleaner redirect
+        Location: redirectUrl.toString()
       },
       body: ''
     };
