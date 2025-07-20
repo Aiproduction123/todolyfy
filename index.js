@@ -550,11 +550,19 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserInfo(user);
   }
 
-  document.getElementById('google-login-btn')?.addEventListener('click', () => {
-    window.location.href = '/.netlify/functions/auth-start';
-  });
+  const googleLoginBtn = document.getElementById('google-login-btn');
+  if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = '/.netlify/functions/auth-start';
+    });
+  }
 
-  document.getElementById('apple-login-btn')?.addEventListener('click', () => {
-    window.location.href = '/.netlify/functions/apple-auth';
-  });
+  const appleLoginBtn = document.getElementById('apple-login-btn');
+  if (appleLoginBtn) {
+    appleLoginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = '/.netlify/functions/apple-auth';
+    });
+  }
 });
