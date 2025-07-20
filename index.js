@@ -492,15 +492,42 @@ document.addEventListener('DOMContentLoaded', () => {
       if (loginButtons) loginButtons.style.display = 'none';
       if (userInfoDiv) {
           userInfoDiv.innerHTML = `
-              <div class="user-profile">
-                  <img src="${user.picture || 'https://placehold.co/40x40/EFEFEF/333333?text=' + (user.name ? user.name.charAt(0) : 'U')}" alt="User Avatar" class="user-avatar">
-                  <div class="user-dropdown">
-                      <div class="user-name">${user.name || 'User'}</div>
-                      <button id="logout-btn" class="logout-btn">Logout</button>
+              <div class="user-avatar" style="width:32px;height:32px;border-radius:50%;cursor:pointer;overflow:hidden;position:relative;">
+                  <img src="${user.picture || 'https://placehold.co/32x32/EFEFEF/333333?text=' + (user.name ? user.name.charAt(0) : 'U')}" 
+                       alt="User Avatar" 
+                       style="width:100%;height:100%;object-fit:cover;">
+              </div>
+              <div class="dropdown-menu" style="display:none;position:absolute;top:100%;right:0;margin-top:8px;background:var(--container-bg);border:1px solid var(--border-color);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.2);min-width:180px;z-index:1000;">
+                  <div class="dropdown-header" style="padding:12px 16px;border-bottom:1px solid var(--border-color);">
+                      <div class="user-name" style="font-weight:500;color:var(--text-color);">${user.name || 'User'}</div>
                   </div>
+                  <button id="logout-btn" class="logout-btn" style="width:100%;text-align:left;padding:12px 16px;border:none;background:none;color:var(--text-color);cursor:pointer;font-size:14px;display:flex;align-items:center;">
+                      <svg style="margin-right:8px;width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                          <polyline points="16 17 21 12 16 7"></polyline>
+                          <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                      Sign out
+                  </button>
               </div>
           `;
           userInfoDiv.style.display = 'block';
+          
+          // Set up click handlers for avatar and dropdown
+          const avatarEl = userInfoDiv.querySelector('.user-avatar');
+          const dropdownMenu = userInfoDiv.querySelector('.dropdown-menu');
+          
+          avatarEl.addEventListener('click', (e) => {
+              e.stopPropagation();
+              dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+          });
+          
+          // Close dropdown when clicking outside
+          document.addEventListener('click', () => {
+              if (dropdownMenu) dropdownMenu.style.display = 'none';
+          });
+          
+          // Handle logout
           document.getElementById('logout-btn').addEventListener('click', handleLogout);
       }
   };

@@ -33,17 +33,15 @@ body {
 }
 
 .app-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    position: relative;
+    text-align: center;
+    margin-bottom: 1rem;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    justify-content: center;
 }
 
 .logo {
@@ -75,6 +73,29 @@ body {
     top: 0;
     right: 0;
     z-index: 10;
+}
+
+.user-avatar {
+    transition: transform 0.2s ease;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+}
+
+.dropdown-menu {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dropdown-menu[style*="block"] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.logout-btn:hover {
+    background-color: rgba(255,255,255,0.05) !important;
 }
 
 .task-form {
