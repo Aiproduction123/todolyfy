@@ -9,6 +9,12 @@ exports.handler = async function(event, context) {
       return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
+    // Log environment variables for debugging
+    console.log('APPLE_CLIENT_ID:', process.env.APPLE_CLIENT_ID);
+    console.log('APPLE_KEY_ID:', process.env.APPLE_KEY_ID);
+    console.log('APPLE_TEAM_ID:', process.env.APPLE_TEAM_ID);
+    console.log('APPLE_PRIVATE_KEY:', process.env.APPLE_PRIVATE_KEY ? '[REDACTED]' : 'undefined');
+
     const body = querystring.parse(event.body);
     const code = body.code;
     // Apple sends user's name on first auth in the `user` field.
@@ -33,6 +39,7 @@ exports.handler = async function(event, context) {
     } else {
       redirect_uri = `${protocol}://todolyfy.com/auth/apple/callback`;
     }
+    console.log('Apple callback redirect_uri:', redirect_uri);
 
     // Create client secret JWT
     const claims = {
@@ -42,10 +49,19 @@ exports.handler = async function(event, context) {
       aud: 'https://appleid.apple.com',
       sub: process.env.APPLE_CLIENT_ID
     };
-    const clientSecret = jwt.sign(claims, process.env.APPLE_PRIVATE_KEY.replace(/\n/g, '\n'), {
-      algorithm: 'ES256',
-      keyid: process.env.APPLE_KEY_ID
-    });
+    let clientSecret;
+    try {
+      clientSecret = jwt.sign(claims, process.env.APPLE_PRIVATE_KEY.replace(/\n/g, '\n'), {
+        algorithm: 'ES256',
+        keyid: process.env.APPLE_KEY_ID
+      });
+    } catch (jwtError) {
+      console.error('Error creating Apple client secret JWT:', jwtError);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Error creating Apple client secret JWT', details: jwtError.message })
+      };
+    }
 
     // Exchange code for token
     const tokenParams = new URLSearchParams({
@@ -63,10 +79,14 @@ exports.handler = async function(event, context) {
     });
 
     const tokenData = await tokenResponse.json();
+    console.log('Apple token exchange response:', tokenData);
 
     if (!tokenResponse.ok || !tokenData.id_token) {
         console.error('Error exchanging Apple auth code for token:', tokenData);
-        throw new Error(tokenData.error_description || 'Failed to get id_token from Apple.');
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ error: 'Failed to get id_token from Apple', details: tokenData })
+        };
     }
 
     // Decode the token to get user's email and unique ID (sub).
@@ -88,10 +108,10 @@ exports.handler = async function(event, context) {
       body: ''
     };
   } catch (error) {
-    console.error("Apple callback error:", error);
+    console.error('Apple callback error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Apple authentication failed." })
+      body: JSON.stringify({ error: 'Apple authentication failed.', details: error.message })
     };
   }
 };
