@@ -22,18 +22,9 @@
   to = "/.netlify/functions/apple-callback"
   status = 200
   force = true
-  headers = { Access-Control-Allow-Origin = "*" }
 
 [[redirects]]
   from = "/auth/callback"
   to = "/.netlify/functions/auth-callback"
   status = 200
-  force = true
-  headers = { Access-Control-Allow-Origin = "*" }
-
-# Handle www redirect
-[[redirects]]
-  from = "https://todolyfy.com/*"
-  to = "https://www.todolyfy.com/:splat"
-  status = 301
   force = true

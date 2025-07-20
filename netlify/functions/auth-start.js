@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 
-const OAUTH2_REDIRECT_URI = 'https://www.todolyfy.com/auth/callback';
+const OAUTH2_REDIRECT_URI = 'https://todolyfy.com/auth/callback';
 
 export const handler = async function(event, context) {
     
