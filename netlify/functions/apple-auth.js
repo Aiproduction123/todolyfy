@@ -1,13 +1,11 @@
 const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
-  console.log('Apple Auth - Starting authentication process');
-  console.log('Apple Auth - Redirect URI:', 'https://todolyfy.com/.netlify/functions/apple-callback');
-  
   const params = {
     response_type: 'code',
     client_id: process.env.APPLE_CLIENT_ID,
-    redirect_uri: 'https://todolyfy.com/.netlify/functions/apple-callback',
+    // This redirect_uri now exactly matches your Apple Developer configuration.
+    redirect_uri: 'https://todolyfy.com/auth/apple/callback',
     scope: 'name email',
     state: 'todolyfy', // It's a good security practice to generate a unique, random state value for each request.
     response_mode: 'form_post'
