@@ -1,33 +1,33 @@
-import { google } from 'googleapis';
+// netlify/functions/auth-start.js
 
-// Use the clean redirect URI defined in netlify.toml
-const OAUTH2_REDIRECT_URI = 'https://todolyfy.com/.netlify/functions/auth-callback';
+const { google } = require('googleapis');
 
-export const handler = async function(event, context) {
-    
-    const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        OAUTH2_REDIRECT_URI
-    );
+exports.handler = async function(event, context) {
+  // Dynamically construct the redirect URI
+  const redirectUri = `${process.env.URL}/.netlify/functions/auth-callback`;
 
-    const scopes = [
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/userinfo.email'
-    ];
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri
+  );
 
-    const authorizationUrl = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: scopes,
-        include_granted_scopes: true
-    });
+  const scopes = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/userinfo.email',
+  ];
 
-    return {
-        statusCode: 302,
-        headers: {
-            Location: authorizationUrl,
-            'Cache-Control': 'no-cache' 
-        },
-        body: ''
-    };
+  const authorizationUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes,
+  });
+
+  return {
+    statusCode: 302,
+    headers: {
+      Location: authorizationUrl,
+      'Cache-Control': 'no-cache',
+    },
+    body: '',
+  };
 };
