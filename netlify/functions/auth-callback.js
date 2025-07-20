@@ -1,7 +1,7 @@
 import { google } from 'googleapis';
 
 // Use the clean redirect URI defined in netlify.toml
-const OAUTH2_REDIRECT_URI = `${process.env.URL}/auth/callback`;
+const OAUTH2_REDIRECT_URI = `https://todolyfy.com/.netlify/functions/auth-callback`;
 
 export const handler = async function(event, context) {
     // Log environment variables for debugging
