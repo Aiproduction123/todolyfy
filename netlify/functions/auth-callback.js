@@ -18,11 +18,13 @@ export const handler = async function(event, context) {
         });
         const { data } = await oauth2.userinfo.get();
         const { name, picture, email } = data;
-        // Redirect to home page with user info in query params
+        // Set user info cookie and redirect to home page
+        const userInfo = JSON.stringify({ name, picture, email });
         return {
             statusCode: 302,
             headers: {
-                Location: `/?name=${encodeURIComponent(name)}&picture=${encodeURIComponent(picture)}&email=${encodeURIComponent(email)}`
+                'Set-Cookie': `user-info=${encodeURIComponent(userInfo)}; Path=/; HttpOnly; SameSite=Lax`,
+                Location: `/`
             },
             body: ''
         };

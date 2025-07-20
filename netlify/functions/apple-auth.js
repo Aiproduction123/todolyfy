@@ -1,11 +1,20 @@
 const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
+  // Dynamically set redirect_uri based on request host
+  const host = event.headers['host'] || 'todolyfy.com';
+  const protocol = event.headers['x-forwarded-proto'] || 'https';
+  let redirect_uri;
+  if (host.startsWith('www.')) {
+    redirect_uri = `${protocol}://www.todolyfy.com/auth/apple/callback`;
+  } else {
+    redirect_uri = `${protocol}://todolyfy.com/auth/apple/callback`;
+  }
+
   const params = {
     response_type: 'code',
     client_id: process.env.APPLE_CLIENT_ID,
-    // This redirect_uri now exactly matches your Apple Developer configuration.
-    redirect_uri: 'https://todolyfy.com/auth/apple/callback',
+    redirect_uri,
     scope: 'name email',
     state: 'todolyfy', // It's a good security practice to generate a unique, random state value for each request.
     response_mode: 'form_post'
