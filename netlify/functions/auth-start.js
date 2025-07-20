@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 
-const OAUTH2_REDIRECT_URI = `${process.env.URL}/.netlify/functions/auth-callback`;
+const OAUTH2_REDIRECT_URI = 'https://todolyfy.com/.netlify/functions/auth-callback';
 
 export const handler = async function(event, context) {
     
@@ -18,6 +18,8 @@ export const handler = async function(event, context) {
     const authorizationUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
+        prompt: 'select_account consent',
+        state: Buffer.from(JSON.stringify({ redirectPath: '/' })).toString('base64'),
         include_granted_scopes: true
     });
 

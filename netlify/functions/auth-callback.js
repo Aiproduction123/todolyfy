@@ -18,6 +18,8 @@ export const handler = async function(event, context) {
         });
         const { data } = await oauth2.userinfo.get();
         const { name, picture, email } = data;
+        const state = event.queryStringParameters.state;
+        const redirectPath = state ? JSON.parse(Buffer.from(state, 'base64').toString()).redirectPath : '/';
         // Redirect to home page with user info in query params
         return {
             statusCode: 302,
