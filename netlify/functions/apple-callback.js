@@ -28,7 +28,8 @@ exports.handler = async function(event, context) {
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
-    redirect_uri: `${process.env.URL}/.netlify/functions/apple-callback`,
+    // This redirect_uri must also match your Apple Developer configuration.
+    redirect_uri: 'https://todolyfy.com/auth/apple/callback',
     client_id: process.env.APPLE_CLIENT_ID,
     client_secret: clientSecret
   });
@@ -42,13 +43,18 @@ exports.handler = async function(event, context) {
 
   // Decode id_token to get user info
   const idToken = data.id_token;
+  // Note: For production, you should verify the id_token signature before trusting its contents.
   const userInfo = jwt.decode(idToken);
 
+  // You can now use the userInfo.sub as a stable unique identifier for the user.
+  // The name and email are only sent on the first authentication.
+
   // Redirect to home page with user info
+  // Be careful about passing sensitive info like email in URL params.
   return {
     statusCode: 302,
     headers: {
-      Location: `/?name=${encodeURIComponent(userInfo.name || '')}&email=${encodeURIComponent(userInfo.email || '')}&apple=true`
+      Location: `/?apple_success=true` // A cleaner redirect
     },
     body: ''
   };
