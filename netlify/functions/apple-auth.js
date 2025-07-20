@@ -1,15 +1,7 @@
 const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
-  // Dynamically set redirect_uri based on request host
-  const host = event.headers['host'] || 'todolyfy.com';
-  const protocol = event.headers['x-forwarded-proto'] || 'https';
-  let redirect_uri;
-  if (host.startsWith('www.')) {
-    redirect_uri = `${protocol}://www.todolyfy.com/auth/apple/callback`;
-  } else {
-    redirect_uri = `${protocol}://todolyfy.com/auth/apple/callback`;
-  }
+  const redirect_uri = `${process.env.URL}/auth/apple/callback`;
 
   const params = {
     response_type: 'code',

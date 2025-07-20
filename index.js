@@ -553,14 +553,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.google-login-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      window.location.href = '/.netlify/functions/auth-start';
+      window.location.href = '/auth/google';
     });
   });
 
   document.querySelectorAll('.apple-login-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      window.location.href = '/.netlify/functions/apple-auth';
+      window.location.href = '/auth/apple';
     });
   });
 });

@@ -28,3 +28,13 @@
   to = "/.netlify/functions/auth-callback"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/auth/google"
+  to = "/.netlify/functions/auth-start"
+  status = 200
+
+[[redirects]]
+  from = "/auth/apple"
+  to = "/.netlify/functions/apple-auth"
+  status = 200

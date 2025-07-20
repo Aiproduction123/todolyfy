@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 
-const OAUTH2_REDIRECT_URI = `${process.env.URL}/.netlify/functions/auth-callback`;
+// Use the clean redirect URI defined in netlify.toml
+const OAUTH2_REDIRECT_URI = `${process.env.URL}/auth/callback`;
 
 export const handler = async function(event, context) {
     const code = event.queryStringParameters.code;
@@ -18,13 +19,17 @@ export const handler = async function(event, context) {
         });
         const { data } = await oauth2.userinfo.get();
         const { name, picture, email } = data;
-        // Set user info cookie and redirect to home page
-        const userInfo = JSON.stringify({ name, picture, email });
+        // Redirect to the home page with user info in the query parameters.
+        // The client-side code will then handle storing this in localStorage.
+        const redirectUrl = new URL('/', process.env.URL);
+        redirectUrl.searchParams.set('name', name || '');
+        redirectUrl.searchParams.set('picture', picture || '');
+        redirectUrl.searchParams.set('email', email || '');
+
         return {
             statusCode: 302,
             headers: {
-                'Set-Cookie': `user-info=${encodeURIComponent(userInfo)}; Path=/; HttpOnly; SameSite=Lax`,
-                Location: `/`
+                Location: redirectUrl.toString()
             },
             body: ''
         };
