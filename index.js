@@ -550,19 +550,17 @@ document.addEventListener('DOMContentLoaded', () => {
       renderUserInfo(user);
   }
 
-  const googleLoginBtn = document.getElementById('google-login-btn');
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener('click', (e) => {
+  document.querySelectorAll('.google-login-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
       window.location.href = '/.netlify/functions/auth-start';
     });
-  }
+  });
 
-  const appleLoginBtn = document.getElementById('apple-login-btn');
-  if (appleLoginBtn) {
-    appleLoginBtn.addEventListener('click', (e) => {
+  document.querySelectorAll('.apple-login-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
       e.preventDefault();
       window.location.href = '/.netlify/functions/apple-auth';
     });
-  }
+  });
 });
