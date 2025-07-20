@@ -29,7 +29,7 @@ exports.handler = async function(event, context) {
     grant_type: 'authorization_code',
     code,
     // This redirect_uri must also match your Apple Developer configuration.
-    redirect_uri: 'https://todolyfy.com/auth/apple/callback',
+    redirect_uri: 'http://todolyfy.com/auth/apple/callback',
     client_id: process.env.APPLE_CLIENT_ID,
     client_secret: clientSecret
   });
