@@ -24,6 +24,16 @@ exports.handler = async function(event, context) {
       };
     }
 
+    // Dynamically set redirect_uri based on request host
+    const host = event.headers['host'] || 'todolyfy.com';
+    const protocol = event.headers['x-forwarded-proto'] || 'https';
+    let redirect_uri;
+    if (host.startsWith('www.')) {
+      redirect_uri = `${protocol}://www.todolyfy.com/auth/apple/callback`;
+    } else {
+      redirect_uri = `${protocol}://todolyfy.com/auth/apple/callback`;
+    }
+
     // Create client secret JWT
     const claims = {
       iss: process.env.APPLE_TEAM_ID,
@@ -32,7 +42,7 @@ exports.handler = async function(event, context) {
       aud: 'https://appleid.apple.com',
       sub: process.env.APPLE_CLIENT_ID
     };
-    const clientSecret = jwt.sign(claims, process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, '\n'), {
+    const clientSecret = jwt.sign(claims, process.env.APPLE_PRIVATE_KEY.replace(/\n/g, '\n'), {
       algorithm: 'ES256',
       keyid: process.env.APPLE_KEY_ID
     });
@@ -41,8 +51,7 @@ exports.handler = async function(event, context) {
     const tokenParams = new URLSearchParams({
       grant_type: 'authorization_code',
       code,
-      // This redirect_uri must also exactly match the one in apple-auth.js and your Apple Developer configuration. It's built using the Netlify URL env var.
-      redirect_uri: `${process.env.URL}/auth/apple/callback`,
+      redirect_uri,
       client_id: process.env.APPLE_CLIENT_ID,
       client_secret: clientSecret
     });
@@ -66,7 +75,7 @@ exports.handler = async function(event, context) {
     const email = decodedToken.email;
 
     // Redirect to the home page with user info in the query parameters.
-    const redirectUrl = new URL('/', process.env.URL);
+    const redirectUrl = new URL('/', `${protocol}://${host}`);
     if (userName) redirectUrl.searchParams.set('name', userName);
     if (email) redirectUrl.searchParams.set('email', email);
     redirectUrl.searchParams.set('apple_success', 'true'); // To signal successful Apple login
