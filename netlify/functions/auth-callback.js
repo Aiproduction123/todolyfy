@@ -31,7 +31,7 @@ export const handler = async function(event, context) {
         return {
             statusCode: 302,
             headers: {
-                'Set-Cookie': `user-info=${encodeURIComponent(userInfo)}; Path=/; HttpOnly; SameSite=Lax`,
+                'Set-Cookie': `user-info=${encodeURIComponent(userInfo)}; Path=/; SameSite=Lax`,
                 Location: `/`
             },
             body: ''
