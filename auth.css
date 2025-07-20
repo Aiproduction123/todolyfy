@@ -1,9 +1,4 @@
-.auth-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 20px;
-}
+/* No styles needed in auth.css as we're using inline styles */
 
 #apple-login-btn {
     display: flex;
