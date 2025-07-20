@@ -462,6 +462,29 @@ function handleLogout() {
     window.location.href = '/';
 }
 
+// --- Helper to read cookie ---
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// --- On page load, check for user-info cookie ---
+(function() {
+  const cookieUserInfo = getCookie('user-info');
+  if (cookieUserInfo) {
+    try {
+      const user = JSON.parse(decodeURIComponent(cookieUserInfo));
+      localStorage.setItem('user-info', JSON.stringify(user));
+      // Optionally, clear the cookie after reading
+      document.cookie = 'user-info=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;';
+    } catch (e) {
+      console.error('Failed to parse user-info cookie:', e);
+    }
+  }
+})();
+
 // --- Initial Load ---
 document.addEventListener('DOMContentLoaded', () => {
   if (taskForm) taskForm.addEventListener('submit', handleFormSubmit);
@@ -518,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
           // Close dropdown when clicking outside
           document.addEventListener('click', () => {
-              if (dropdownMenu) dropdownMenu.style.display = 'none';
+              if (dropdownMenu) dropdownMenu.style.di splay = 'none';
           });
           
           // Handle logout
