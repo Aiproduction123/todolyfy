@@ -18,13 +18,7 @@
   status = 200
 
 [[redirects]]
-  from = "/auth/apple/callback"
-  to = "/.netlify/functions/apple-callback"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/auth/callback"
-  to = "/.netlify/functions/auth-callback"
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
   status = 200
   force = true

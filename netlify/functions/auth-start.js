@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 
-const OAUTH2_REDIRECT_URI = 'https://todolyfy.com/auth/callback';
+// IMPORTANT: This must exactly match what's in Google Developer Console
+const OAUTH2_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'https://todolyfy.com/.netlify/functions/auth-callback';
 
 export const handler = async function(event, context) {
     
