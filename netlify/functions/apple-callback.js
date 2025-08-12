@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const fetch = require('node-fetch');
 const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
@@ -30,15 +29,8 @@ exports.handler = async function(event, context) {
       };
     }
 
-    // Dynamically set redirect_uri based on request host
-    const host = event.headers['host'] || 'todolyfy.com';
-    const protocol = event.headers['x-forwarded-proto'] || 'https';
-    let redirect_uri;
-    if (host.startsWith('www.')) {
-      redirect_uri = `${protocol}://www.todolyfy.com/auth/apple/callback`;
-    } else {
-      redirect_uri = `${protocol}://todolyfy.com/auth/apple/callback`;
-    }
+    // Use the exact same redirect_uri as in the initial Apple auth step
+    const redirect_uri = `${process.env.URL}/auth/apple/callback`;
     console.log('Apple callback redirect_uri:', redirect_uri);
 
     // Create client secret JWT
@@ -95,15 +87,15 @@ exports.handler = async function(event, context) {
     const email = decodedToken.email;
 
     // Redirect to the home page with user info in the query parameters.
-    const redirectUrl = new URL('/', `${protocol}://${host}`);
-    if (userName) redirectUrl.searchParams.set('name', userName);
-    if (email) redirectUrl.searchParams.set('email', email);
-    redirectUrl.searchParams.set('apple_success', 'true'); // To signal successful Apple login
+    const params = new URLSearchParams();
+    if (userName) params.set('name', userName);
+    if (email) params.set('email', email);
+    params.set('apple_success', 'true');
 
     return {
       statusCode: 302,
       headers: {
-        Location: redirectUrl.toString()
+        Location: `/?${params.toString()}`
       },
       body: ''
     };
