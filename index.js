@@ -478,12 +478,14 @@ document.addEventListener('DOMContentLoaded', () => {
   loadState();
   renderApp();
 
-  const loginButtons = document.getElementById('login-buttons');
+  const loginButtons = document.getElementById('main-login-buttons');
+  const userInfoHeader = document.getElementById('user-info-header');
   const userInfoDiv = document.getElementById('user-info');
   const params = new URLSearchParams(window.location.search);
 
   const renderUserInfo = (user) => {
       if (loginButtons) loginButtons.style.display = 'none';
+      if (userInfoHeader) userInfoHeader.style.display = 'block';
       if (userInfoDiv) {
           userInfoDiv.innerHTML = `
               <div class="user-avatar" style="width:32px;height:32px;border-radius:50%;cursor:pointer;overflow:hidden;position:relative;">
@@ -531,13 +533,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (user) {
           renderUserInfo(user);
           if (loginButtons) loginButtons.style.display = 'none';
+          if (userInfoHeader) userInfoHeader.style.display = 'block';
       } else {
         if (loginButtons) loginButtons.style.display = 'block';
         if (userInfoDiv) userInfoDiv.style.display = 'none';
+        if (userInfoHeader) userInfoHeader.style.display = 'none';
       }
   } catch(e) {
       if (loginButtons) loginButtons.style.display = 'block';
       if (userInfoDiv) userInfoDiv.style.display = 'none';
+      if (userInfoHeader) userInfoHeader.style.display = 'none';
   }
 
   // Check for any successful login redirect (Google or Apple)

@@ -1,8 +1,7 @@
 const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
-  // Standardize to the non-www version, which should be the canonical URL.
-  // Use the Netlify-provided URL to ensure consistency across environments.
+  // Use Netlify-provided URL so it's correct on both preview and prod
   const redirect_uri = `${process.env.URL}/auth/apple/callback`;
 
   const params = {
