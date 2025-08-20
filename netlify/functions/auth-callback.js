@@ -31,8 +31,11 @@ exports.handler = async function(event, context) {
     
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     
-    // Redirect to the frontend with the token
-    const frontendUrl = `/?token=${token}`; 
+    // Redirect to the frontend with user info so the existing UI can pick it up
+    const frontendUrl = `/?name=${encodeURIComponent(data.name || 'User')}` +
+                        `&email=${encodeURIComponent(data.email || '')}` +
+                        `&picture=${encodeURIComponent(data.picture || '')}` +
+                        `&token=${encodeURIComponent(token)}`;
 
     return {
         statusCode: 302,

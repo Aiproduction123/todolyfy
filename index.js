@@ -1,5 +1,18 @@
 // --- Configuration ---
-const TASK_STORAGE_KEY = 'todolyfy-tasks';
+const TASK_STORAGE_KEY_PREFIX = 'todolyfy-tasks';
+
+// Get user-specific storage key
+function getTaskStorageKey() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user-info') || '{}');
+        if (user.email) {
+            return `${TASK_STORAGE_KEY_PREFIX}-${user.email}`;
+        }
+    } catch (error) {
+        console.error('Error parsing user-info from localStorage:', error);
+    }
+    return TASK_STORAGE_KEY_PREFIX; // Fallback for anonymous users or errors
+}
 
 // --- Global State ---
 let tasks = [];
@@ -14,7 +27,7 @@ const tabsContainer = document.querySelector('.task-tabs');
 // --- State Management ---
 function loadState() {
   try {
-    const storedTasks = localStorage.getItem(TASK_STORAGE_KEY);
+    const storedTasks = localStorage.getItem(getTaskStorageKey());
     if (storedTasks) {
       tasks = JSON.parse(storedTasks);
       // Initialize any missing properties on tasks loaded from localStorage
@@ -36,7 +49,7 @@ function saveTasks() {
   try {
     // Ensure editing mode is not saved
     tasks.forEach(task => task.isEditingNotes = false);
-    localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
+    localStorage.setItem(getTaskStorageKey(), JSON.stringify(tasks));
   } catch (error) {
     console.error("Failed to save tasks to localStorage", error);
   }
@@ -478,12 +491,14 @@ document.addEventListener('DOMContentLoaded', () => {
   loadState();
   renderApp();
 
-  const loginButtons = document.getElementById('login-buttons');
+  const loginButtons = document.getElementById('main-login-buttons');
+  const userInfoHeader = document.getElementById('user-info-header');
   const userInfoDiv = document.getElementById('user-info');
   const params = new URLSearchParams(window.location.search);
 
   const renderUserInfo = (user) => {
       if (loginButtons) loginButtons.style.display = 'none';
+      if (userInfoHeader) userInfoHeader.style.display = 'block';
       if (userInfoDiv) {
           userInfoDiv.innerHTML = `
               <div class="user-avatar" style="width:32px;height:32px;border-radius:50%;cursor:pointer;overflow:hidden;position:relative;">
@@ -531,13 +546,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (user) {
           renderUserInfo(user);
           if (loginButtons) loginButtons.style.display = 'none';
+          if (userInfoHeader) userInfoHeader.style.display = 'block';
       } else {
         if (loginButtons) loginButtons.style.display = 'block';
         if (userInfoDiv) userInfoDiv.style.display = 'none';
+        if (userInfoHeader) userInfoHeader.style.display = 'none';
       }
   } catch(e) {
       if (loginButtons) loginButtons.style.display = 'block';
       if (userInfoDiv) userInfoDiv.style.display = 'none';
+      if (userInfoHeader) userInfoHeader.style.display = 'none';
   }
 
   // Check for any successful login redirect (Google or Apple)
@@ -552,7 +570,16 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       localStorage.setItem('user-info', JSON.stringify(user));
       window.history.replaceState({}, document.title, "/"); // Clean the URL
+      
+      // Load user-specific tasks after login
+      loadState();
+      renderApp();
+      
       renderUserInfo(user);
+      
+      // Ensure login buttons are hidden after successful login
+      if (loginButtons) loginButtons.style.display = 'none';
+      if (userInfoHeader) userInfoHeader.style.display = 'block';
   }
 
   document.querySelectorAll('.google-login-btn').forEach(btn => {
