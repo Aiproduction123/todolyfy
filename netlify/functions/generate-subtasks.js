@@ -32,8 +32,16 @@ exports.handler = async function(event, context) {
         const genAI = new GoogleGenerativeAI(process.env.API_KEY);
         const model = genAI.getGenerativeModel({ model: AI_MODEL_NAME });
         
-        // UPDATED: Prompt now instructs the AI to use the same language as the input.
-        const prompt = `You are a task breakdown assistant. Given the task "${taskText}", provide a JSON object with a "subtasks" key containing an array of 2-3 actionable subtasks. IMPORTANT: The subtasks must be in the same language as the original task. Your response MUST be only the JSON object. Example: {"subtasks": ["Subtask 1", "Subtask 2"]}`;
+        // Language-aware prompt for subtask generation
+        const prompt = `You are a task breakdown assistant. Given the task "${taskText}", provide a JSON object with a "subtasks" key containing an array of 2-3 actionable subtasks. 
+        
+        CRITICAL: You MUST generate the subtasks in the EXACT SAME LANGUAGE as the input task. If the task is in English, respond in English. If the task is in German, respond in German. If the task is in Spanish, respond in Spanish, etc.
+        
+        Your response MUST be only the JSON object with no additional text.
+        
+        Examples:
+        - Input: "Plan a birthday party" → {"subtasks": ["Book a venue", "Send invitations", "Order a cake"]}
+        - Input: "Eine Geburtstagsparty planen" → {"subtasks": ["Einen Veranstaltungsort buchen", "Einladungen versenden", "Eine Torte bestellen"]}`;
 
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
