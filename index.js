@@ -498,7 +498,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const renderUserInfo = (user) => {
       if (loginButtons) loginButtons.style.display = 'none';
-      if (userInfoHeader) userInfoHeader.style.display = 'block';
+      if (userInfoHeader) {
+          userInfoHeader.style.display = 'block';
+          // Hide the login buttons container inside the header
+          const headerLoginButtons = userInfoHeader.querySelector('.login-buttons-container');
+          if (headerLoginButtons) headerLoginButtons.style.display = 'none';
+      }
       if (userInfoDiv) {
           userInfoDiv.innerHTML = `
               <div class="user-avatar" style="width:32px;height:32px;border-radius:50%;cursor:pointer;overflow:hidden;position:relative;">
@@ -546,16 +551,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (user) {
           renderUserInfo(user);
           if (loginButtons) loginButtons.style.display = 'none';
-          if (userInfoHeader) userInfoHeader.style.display = 'block';
+          if (userInfoHeader) {
+              userInfoHeader.style.display = 'block';
+              const headerLoginButtons = userInfoHeader.querySelector('.login-buttons-container');
+              if (headerLoginButtons) headerLoginButtons.style.display = 'none';
+          }
       } else {
         if (loginButtons) loginButtons.style.display = 'block';
         if (userInfoDiv) userInfoDiv.style.display = 'none';
-        if (userInfoHeader) userInfoHeader.style.display = 'none';
+        if (userInfoHeader) {
+            userInfoHeader.style.display = 'none';
+            const headerLoginButtons = userInfoHeader.querySelector('.login-buttons-container');
+            if (headerLoginButtons) headerLoginButtons.style.display = 'block';
+        }
       }
   } catch(e) {
       if (loginButtons) loginButtons.style.display = 'block';
       if (userInfoDiv) userInfoDiv.style.display = 'none';
-      if (userInfoHeader) userInfoHeader.style.display = 'none';
+      if (userInfoHeader) {
+          userInfoHeader.style.display = 'none';
+          const headerLoginButtons = userInfoHeader.querySelector('.login-buttons-container');
+          if (headerLoginButtons) headerLoginButtons.style.display = 'block';
+      }
   }
 
   // Check for any successful login redirect (Google or Apple)
@@ -579,7 +596,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Ensure login buttons are hidden after successful login
       if (loginButtons) loginButtons.style.display = 'none';
-      if (userInfoHeader) userInfoHeader.style.display = 'block';
+      if (userInfoHeader) {
+          userInfoHeader.style.display = 'block';
+          const headerLoginButtons = userInfoHeader.querySelector('.login-buttons-container');
+          if (headerLoginButtons) headerLoginButtons.style.display = 'none';
+      }
   }
 
   document.querySelectorAll('.google-login-btn').forEach(btn => {
