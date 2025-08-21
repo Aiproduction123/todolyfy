@@ -3,6 +3,11 @@ const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
   try {
+    // Add these lines for debugging
+    console.log('Verifying private key variable...');
+    console.log('Type of key:', typeof process.env.APPLE_PRIVATE_KEY);
+    console.log('Length of key:', process.env.APPLE_PRIVATE_KEY ? process.env.APPLE_PRIVATE_KEY.length : 'undefined or null');
+
     // Apple sends a POST request with form data.
     if (event.httpMethod !== 'POST') {
       return { statusCode: 405, body: 'Method Not Allowed' };
@@ -43,7 +48,8 @@ exports.handler = async function(event, context) {
     };
     let clientSecret;
     try {
-      clientSecret = jwt.sign(claims, process.env.APPLE_PRIVATE_KEY.replace(/\n/g, '\n'), {
+      // CORRECTED LINE: Removed the .replace() method
+      clientSecret = jwt.sign(claims, process.env.APPLE_PRIVATE_KEY, {
         algorithm: 'ES256',
         keyid: process.env.APPLE_KEY_ID
       });
