@@ -3,21 +3,10 @@ const querystring = require('querystring');
 
 exports.handler = async function(event, context) {
   try {
-    // Add these lines for debugging
-    console.log('Verifying private key variable...');
-    console.log('Type of key:', typeof process.env.APPLE_PRIVATE_KEY);
-    console.log('Length of key:', process.env.APPLE_PRIVATE_KEY ? process.env.APPLE_PRIVATE_KEY.length : 'undefined or null');
-
     // Apple sends a POST request with form data.
     if (event.httpMethod !== 'POST') {
       return { statusCode: 405, body: 'Method Not Allowed' };
     }
-
-    // Log environment variables for debugging
-    console.log('APPLE_CLIENT_ID:', process.env.APPLE_CLIENT_ID);
-    console.log('APPLE_KEY_ID:', process.env.APPLE_KEY_ID);
-    console.log('APPLE_TEAM_ID:', process.env.APPLE_TEAM_ID);
-    console.log('APPLE_PRIVATE_KEY:', process.env.APPLE_PRIVATE_KEY ? '[REDACTED]' : 'undefined');
 
     const body = querystring.parse(event.body);
     const code = body.code;
@@ -36,7 +25,6 @@ exports.handler = async function(event, context) {
 
     // Use the exact same redirect_uri as in the initial Apple auth step
     const redirect_uri = `${process.env.URL}/auth/apple/callback`;
-    console.log('Apple callback redirect_uri:', redirect_uri);
 
     // Create client secret JWT
     const claims = {
@@ -48,8 +36,11 @@ exports.handler = async function(event, context) {
     };
     let clientSecret;
     try {
-      // CORRECTED LINE: Removed the .replace() method
-      clientSecret = jwt.sign(claims, process.env.APPLE_PRIVATE_KEY, {
+      // When storing a multi-line key in an environment variable, the newlines
+      // are often converted to the string literal "\\n". We need to replace
+      // these with actual newline characters for the JWT library to parse the key.
+      const privateKey = process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+      clientSecret = jwt.sign(claims, privateKey, {
         algorithm: 'ES256',
         keyid: process.env.APPLE_KEY_ID
       });
@@ -77,7 +68,6 @@ exports.handler = async function(event, context) {
     });
 
     const tokenData = await tokenResponse.json();
-    console.log('Apple token exchange response:', tokenData);
 
     if (!tokenResponse.ok || !tokenData.id_token) {
         console.error('Error exchanging Apple auth code for token:', tokenData);
